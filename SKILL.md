@@ -23,9 +23,12 @@ AI Agent execution rules for dynamic skill orchestration and zero-base-token opt
 
 ## Resolution Priority
 
-1. **Project Scope** (`./.agents/skills/`): Priority 1 (Local reuse)
-2. **Unified Shared Cold Archive** (`~/.agents/skills_archive/`): Priority 2 (0ms Copy, 0 Base Tokens, Cross-IDE Shared)
-3. **Hot Base** (`~/.<ide-or-agent>/skills/`): Priority 3 (Core base only, <= 500 Tokens)
+| Directory Path | Role & Scope | Priority & Loading | Token Impact | Lifecycle & Cleanup |
+| :--- | :--- | :---: | :---: | :--- |
+| **`<ProjectRoot>/.agents/skills/`** | **Project-Scoped Skills** | **Priority 1** (Local reuse) | Project-only (~300-500 Tokens) | Cleaned up via `/cleanup` |
+| **`~/.agents/skills_archive/`** | **Unified Shared Cold Archive** | **Priority 2** (0ms Copy, Cross-IDE Shared) | **0 Tokens** (Cold state) | Permanent private storage |
+| **`~/.<ide-or-agent>/skills/`** | **IDE Hot Base Directory** | **Priority 3** (Core base only) | Low overhead (<= 500 Tokens) | Always preloaded |
+| **`~/.gemini/config/skills/`**<br>**`~/.claude/skills/`**<br>**`~/.trae-cn/skills/`** | **Public Skill Folders** | **Auto-Sync Scanner** (Detects manual `npx` skills) | Reduced on `runSync` | Auto-migrated to `~/.agents/skills_archive/` |
 
 ## Telemetry Report Format
 

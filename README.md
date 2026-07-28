@@ -28,8 +28,8 @@
 | :--- | :--- | :---: | :---: | :--- |
 | **`<项目根目录>/.agents/skills/`** | **本项目专属动态技能目录** (Project Scope) | **第 1 优先级** (优先复用当前项目内已装载技能) | 仅在当前项目占用 (~300-500 Tokens) | 项目结项使用 `/cleanup` 一键清理 |
 | **`~/.agents/skills_archive/`** | **全平台统一共享私有冷库** (Unified Shared Cold Vault) | **第 2 优先级** (命中即 0ms 复制入项目，跨 IDE 全端共享) | **0 Tokens** (完全冷冻，开局 0 占用) | 永久私有保存，绝对不随项目清理 |
-| **`~/.<ide-or-agent>/skills/`** | **当前 IDE / Agent 全局热底座目录** (Hot Core Base) | **第 3 优先级** (仅常驻 2-3 个通用核心 Skill) | 保持极低开销 (&le; 500 Tokens) | 常驻热加载 |
-| **`~/.agents/skills/`**<br>**`~/.claude/skills/`**<br>**`~/.trae-cn/skills/`** | **第三方 Agent 全局公共目录** (Public Skill Folders) | **自动巡检捕获** (检测用户手动 `npx` 安装的新技能) | 触发 `runSync` 后恢复极简 | 巡检捕获后自动迁移移入共享冷库 |
+| **`~/.<ide-or-agent>/skills/`** | **当前 IDE / Agent 全局热底座目录** (Hot Core Base) | **第 3 优先级** (仅常驻 2-3 个通用核心 Core Skill) | 保持极低开销 (&le; 500 Tokens) | 常驻热加载 |
+| **`~/.gemini/config/skills/`**<br>**`~/.claude/skills/`**<br>**`~/.trae-cn/skills/`** | **各大 IDE 公共技能目录** (Public Skill Folders) | **自动巡检捕获** (检测用户手动 `npx` 安装的新技能) | 触发 `runSync` 后恢复极简 | 自动巡检移入统一共享冷库 `~/.agents/skills_archive/` |
 
 ---
 
@@ -228,7 +228,7 @@ node scripts/orchestrate.js cleanup # 或 npm run cleanup
 
 ## 变更与迭代历史 (Changelog)
 
-- **v2.6.2 (2026-07-28)**：在 README 首页将“核心痛点”与“功能特点”直接合并为高对比大表，彻底消除重复排版。
-- **v2.6.0 (2026-07-28)**：全面升级架构为全平台统一共享私有冷库 (`~/.agents/skills_archive/`)。
-- **v2.5.0 (2026-07-28)**：新增整合 5 维多源自动推断逻辑章节。
+- **v2.6.3 (2026-07-28)**：根据全平台统一共享私有冷库 (`~/.agents/skills_archive/`) 的实际代码逻辑，精准更新 README 和 SKILL 的技能存储路径与加载优先级对照表。
+- **v2.6.2 (2026-07-28)**：合并 Pain Points 和 Features 为综合大表。
+- **v2.6.0 (2026-07-28)**：全面升级架构为全平台统一共享私有冷库。
 - **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块。
