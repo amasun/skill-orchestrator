@@ -39,9 +39,21 @@ Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
 
 ---
 
-## 🗣️ 斜杠快捷指令 / 自然语言触发指引 (Slash Commands & Triggers)
+## 🛠️ CLI Operations (命令行工具操作)
 
-| 斜杠快捷指令（最推荐 ⭐ 支持 IDE 敲 / 自动补全） | 替代等价语法 | 自然语言口语表述 | 后台自动执行脚本 |
+- `node scripts/orchestrate.js init` - Setup archive vault and optimize global skills.
+- `node scripts/orchestrate.js infer` - Scan package.json/project files and infer dependency skills.
+- `node scripts/orchestrate.js sync` - Auto-detect manually added npx skills and migrate to archive.
+- `node scripts/orchestrate.js status` - Display active vs archived skills token status dashboard.
+- `node scripts/orchestrate.js cleanup` - Clean project-level skills upon completion.
+
+---
+
+## 🗣️ 斜杠指令与自然语言触发 (Triggers & Shortcuts)
+
+在 AI 对话框中，直接输入**斜杠指令**或**自然语言**即可自动触发后台操作：
+
+| 斜杠指令 (支持 Tab 补全) | 替代语法 | 自然语言口语表述 | 后台自动执行 |
 | :---: | :---: | :--- | :--- |
 | **`/status`** | `$status` / `status` | **“查看 Token 占用”、“技能诊断”** | `npm run status` |
 | **`/init`** | `$init` / `init` | **“初始化技能库”、“清空开局占用”** | `npm run init` |
@@ -68,13 +80,3 @@ When this skill is active, the AI Agent adheres to the following lifecycle workf
    - Single-directional addition. Never deletes active skills mid-development to prevent context fragmentation.
 5. **Project Offboarding Phase (`cleanup`)**:
    - Cleans project-level skills after project completion.
-
----
-
-## 🛠️ CLI Operations
-
-- `node scripts/orchestrate.js init` - Setup archive vault and optimize global skills.
-- `node scripts/orchestrate.js infer` - Scan package.json/project files and infer dependency skills.
-- `node scripts/orchestrate.js sync` - Auto-detect manually added npx skills and migrate to archive.
-- `node scripts/orchestrate.js status` - Display active vs archived skills token status dashboard.
-- `node scripts/orchestrate.js cleanup` - Clean project-level skills upon completion.
