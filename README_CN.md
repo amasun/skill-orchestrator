@@ -239,8 +239,45 @@ Prompt Cache Anchor          : Injected (4x Speedup)
 ============================================================
 ```
 
+---
+
+## ❓ 常见问题解答 (FAQ / Q&A)
+
+### Q1: 常驻 Base 技能与共享冷库技能有什么区别？
+**答**：
+- **常驻 Base 技能**（如 `agentic-workflow`, `find-skills`, `skill-orchestrator`, `z-coding-refactoring`）：常驻内存，全时段响应核心调度与重构能力。
+- **共享冷库技能**（存放在 `~/.agents/skills_archive/`）：平时 **0 Token 占用**，在项目中用到或直呼名称时 0ms 瞬间热装载到项目 `.agents/skills/` 目录。
+
+### Q2: 为什么需要 Markdown 控制面板 (`so_skills_registry.md`) 与 JSON 数据库 (`so_skills_registry.json`) 孪生双轨架构？
+**答**：
+- `so_skills_registry.md` 是**给人类用户看的直观控制台**：支持按领域分类（`🎨 UI/UX`, `🎨 Figma`, `🛠️ Core Engineering`, `📊 BigData`, `📄 Docs`）和打勾 `[x]` / `[ ]` 切换状态。
+- `so_skills_registry.json` 是**给 AI Agent 读取的引擎索引**：内含 100% 完整无损的 YAML description 原文，防止因 Markdown 格式裁剪导致 AI 认知不足。
+
+### Q3: 当我在对话中直接说出冷库技能的名字，系统能自动感知并生效吗？
+**答**：完全能！系统支持【直呼技能名 0ms 热装载】协议。当你在对话中提到冷库技能名（例如 `apple-design` 或 `3d-web-experience`）时，AI Agent 会在后台静默将冷库技能复制到项目 `.agents/skills/` 中并全量生效，无需手动操作命令行。
+
+### Q4: 技能存入冷库后，IDE 聊天框输入 `$` 还能下拉自动补全冷库技能吗？
+**答**：常驻 Base 技能依然完美支持 IDE 的 `$` / `/` 键盘下拉补全；冷库技能不在 IDE 原生 UI 下拉菜单中，但通过自然语言直接说出技能名称可自动触发 0ms 热激活。
+
+### Q5: 如果只看 Markdown 面板上截断的简短介绍，AI 会对 Skill 认知不足吗？
+**答**：绝对不会！编排推演时，AI Agent 读取的是 JSON 数据库里 100% 完整无损的 YAML `description` 原文与触发短语，保证零认知缺失。
+
+### Q6: 新探测到的技能会自动分类到 Markdown 面板的领域大块中吗？
+**答**：是的！系统内置启发式领域分类器，探测到新 Skill 时会自动按 `🎨 UI/UX & Motion`、`🎨 Figma Toolchain`、`🛠️ Core Engineering`、`📊 BigData & Cloud`、`📄 Docs` 等自动归块。
+
+### Q7: `so` 和 `so-xxx` 快捷别名指令如何使用？
+**答**：`so` 是 `skill-orchestrator` 的官方简写别名。你可以直接运行或输入：
+- `so-status`（查阅 Token 占用与健康卡）
+- `so-infer`（根据项目自动匹配推演技能）
+- `so-sync`（同步冷库与更新双轨面板）
+- `so-cleanup`（退回 0-Token 共享冷库）
+- `so-eject`（卸载并原路还原所有技能）
+
+### Q8: 原来的 `global-skills-manager` 还保留吗？
+**答**：已彻底弃用并物理删除！现在全局统一使用 `skill-orchestrator` 专属的孪生文件 `so_skills_registry.md` 和 `so_skills_registry.json`，且全局系统规则 `GEMINI.md` 已无缝接轨。
+
 ### Q9: 如果我在 npm 或云端更新了同名技能，本地冷库会自动更新覆盖吗？
-**答**：会的。运行 `npx skill-orchestrator sync`（或 `/sync`）会自动检测 IDE 目录下的最新技能版本，并直接覆盖替换本地冷库中的同名旧版。
+**答**：会的。运行 `npx skill-orchestrator sync`（或 `so-sync`）会自动检测 IDE 目录下的最新技能版本，并直接覆盖替换本地冷库中的同名旧版。
 
 ### Q10: 如果我想彻底退出使用，如何安全还原所有技能并卸载？(Eject 机制)
-**答**：只需发送 `/eject`（或运行 `npx skill-orchestrator eject`），系统会读取 `vault_registry.json`，**自动将私有冷库中的所有技能 100% 原路还原恢复移动回各大 IDE 原始目录**并安全卸载，保证 0 数据丢失！
+**答**：只需运行 `npx skill-orchestrator eject`（或 `so-eject`），系统会读取注册表，**自动将私有冷库中的所有技能 100% 原路还原恢复移动回各大 IDE 原始目录**并安全卸载，保证 0 数据丢失！
