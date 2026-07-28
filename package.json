@@ -11,7 +11,6 @@
     "sync": "node scripts/orchestrate.js sync",
     "infer": "node scripts/orchestrate.js infer",
     "status": "node scripts/orchestrate.js status",
-    "telemetry": "node scripts/orchestrate.js telemetry",
     "cleanup": "node scripts/orchestrate.js cleanup"
   },
   "keywords": [
@@ -19,9 +18,7 @@
     "antigravity",
     "token-optimization",
     "claude-code",
-    "cursor",
-    "telemetry",
-    "dependency-injection"
+    "cursor"
   ],
   "author": "amasun",
   "license": "MIT"
