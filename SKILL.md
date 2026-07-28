@@ -16,7 +16,7 @@ An open, cross-platform Agent Skill that provides automated zero-base-token skil
 
 ### 唤醒方式：
 1. **自动触发**：新项目需求定稿 / 中途新增大模块技能时，AI 自动在回复末尾呈现。
-2. **快捷前缀 / 斜杠命令唤醒（推荐）**：在对话框直接发送 `/status`、`/init`、`/infer`、`/sync`、`/cleanup`（或 `$status` / `status`）。
+2. **防冲突斜杠指令唤醒（推荐）**：在对话框直接发送 `/skill-status` 或 `/status`（亦支持 `$status`）。
 3. **自然语言唤醒**：对 AI 说“查看 Token 占用”、“技能诊断”、“当前项目装了哪些技能”。
 4. **命令行唤醒（开发者）**：在项目终端运行标准命令 `npm run status`。
 
@@ -39,17 +39,17 @@ Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
 
 ---
 
-## 🗣️ 斜杠快捷指令 / 自然语言触发指引 (Slash Commands & Triggers)
+## 🗣️ 防冲突斜杠指令与自然语言触发指引 (Conflict-Free Triggers)
 
-AI 自动全面兼容 **`/` 斜杠前缀**、**`$` 技能前缀** 与 **裸单词**：
+AI 自动全面兼容 **`skill-` 命名空间防冲突指令**、**简写指令**、**`$` 技能前缀** 与 **自然语言**：
 
-| 斜杠快捷指令 (IDE 下拉补全) | 替代等价语法 | 自然语言表述（口语） | 后台自动执行操作 | 作用与效果 |
+| 防冲突斜杠指令 (0% 冲突风险) | 简写快捷指令 | 自然语言表述（口语） | 后台自动执行操作 | 作用与效果 |
 | :---: | :---: | :--- | :--- | :--- |
-| **`/status`** | `$status` / `status` | **“查看 Token 占用”、“技能诊断”** | `npm run status` | 瞬间打印可视化的 Token 仪表盘与健康度汇报卡 |
-| **`/init`** | `$init` / `init` | **“初始化技能库”、“清空开局占用”** | `npm run init` | 建立私有冷库，瞬间释放全局 90%+ 占用 |
-| **`/infer`** | `$infer` / `infer` | **“检查依赖”、“自动匹配技能”** | `npm run infer` | 自动扫描代码依赖，零沟通精准装载技能 |
-| **`/sync`** | `$sync` / `sync` | **“刚才 npx 装了新技能，整理一下”** | `npm run sync` | 捕获手动安装的新技能并静默归档至冷库 |
-| **`/cleanup`** | `$cleanup` / `cleanup` | **“项目开发完成了”、“清理临时技能”** | `npm run cleanup` | 项目结项，一键清理项目局部临时技能 |
+| **`/skill-status`** | `/status` / `$status` | **“查看 Token 占用”、“技能诊断”** | `npm run status` | 瞬间打印可视化的 Token 仪表盘与健康度汇报卡 |
+| **`/skill-init`** | `/init` / `$init` | **“初始化技能库”、“清空开局占用”** | `npm run init` | 建立私有冷库，瞬间释放全局 90%+ 占用 |
+| **`/skill-infer`** | `/infer` / `$infer` | **“检查依赖”、“自动匹配技能”** | `npm run infer` | 自动扫描代码依赖，零沟通精准装载技能 |
+| **`/skill-sync`** | `/sync` / `$sync` | **“刚才 npx 装了新技能，整理一下”** | `npm run sync` | 捕获手动安装的新技能并静默归档至冷库 |
+| **`/skill-cleanup`** | `/cleanup` / `$cleanup` | **“项目开发完成了”、“清理临时技能”** | `npm run cleanup` | 项目结项，一键清理项目局部临时技能 |
 
 ---
 
