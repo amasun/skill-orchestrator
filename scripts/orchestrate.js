@@ -248,9 +248,22 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = '需求意图', p
     const sanitizeName = skillName.split('/').pop();
     const projectTargetPath = path.join(projectCwd, '.agents', 'skills', sanitizeName);
 
+    const maxSkillsLimit = resolveMaxSkillsLimit(projectCwd);
+
     // Source 1: Local Project Scope (Short-circuit if already present)
     if (fs.existsSync(projectTargetPath)) {
         return { success: true, origin: '来源: 本项目已已有', reason: inferReason };
+    }
+
+    // Check current project skills count for limit warnings
+    const projectSkillsDir = path.join(projectCwd, '.agents', 'skills');
+    if (fs.existsSync(projectSkillsDir)) {
+        try {
+            const existingItems = fs.readdirSync(projectSkillsDir).filter(i => !i.startsWith('.'));
+            if (existingItems.length >= maxSkillsLimit) {
+                console.warn(`\n⚠️ Capacity Notice: Project already has ${existingItems.length} active skills (Limit: ${maxSkillsLimit}). Consider running 'node scripts/orchestrate.js cleanup' to clear temporary skills.`);
+            }
+        } catch (e) {}
     }
 
     // Source 2: Unified Shared Cold Archive Vault (~/.agents/skills_archive/)
