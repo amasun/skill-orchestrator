@@ -24,12 +24,21 @@ An open, cross-platform Agent Skill that provides automated zero-base-token skil
 🚀 本项目专属装载 : 
    ├── 3d-web-experience   : 450 Tokens (来源: 本地冷库 | 推断: package.json)
    ├── gsap-core           : 320 Tokens (来源: 本地冷库 | 推断: package.json)
+   ├── web-shader-extractor: 380 Tokens (来源: 本地冷库 | 推断: 代码特征 [.glsl])
+   ├── ditther-dark-glass  : 410 Tokens (来源: 本地冷库 | 推断: 需求意图)
    ├── solidity            : 510 Tokens (来源: Vercel云端 | 仅存项目临时目录)
 ------------------------------------------------------------
-💡 本项目总底座开销 : 1,700 Tokens (对比默认全载节省 82.5% 空间!)
+💡 本项目总底座开销 : 2,490 Tokens (对比默认全载节省 74.5% 空间!)
 ⚡ Prompt Cache 锚点: 已自动注入 (响应速度提速 4x)
 ============================================================
 ```
+
+### 5 大技能推断来源分类 (Inference Source Categories)
+1. **`推断: package.json`**：JavaScript / Node 前端依赖
+2. **`推断: requirements.txt` / `Cargo.toml` / `go.mod`**：Python / Rust / Go 等后端依赖
+3. **`推断: 代码特征 [.glsl / .sqlx]`**：扫描到特定扩展名的代码特征文件
+4. **`推断: 需求意图`**：通过与人类沟通的产品文档与聊天语义理解
+5. **`推断: 用户指定`**：用户显式输入 `$技能名` 唤醒
 
 ---
 
@@ -40,7 +49,7 @@ An open, cross-platform Agent Skill that provides automated zero-base-token skil
 | 用户自然语言表述 | 后台自动执行命令 | 作用 |
 | :--- | :--- | :--- |
 | **“初始化技能库”** / **“清空开局 Token 占用”** | `node scripts/orchestrate.js init` | 建立私有冷库，瞬间释放全局 90%+ 占用 |
-| **“检查 package.json 需要什么技能”** / **“自动匹配依赖技能”** | `node scripts/orchestrate.js infer` | 自动扫描项目代码依赖，零沟通精准装载技能 |
+| **“检查代码依赖需要什么技能”** / **“自动匹配技能”** | `node scripts/orchestrate.js infer` | 自动扫描项目代码依赖，零沟通精准装载技能 |
 | **“刚才在终端 npx 装了新技能，整理一下”** / **“巡检技能”** | `node scripts/orchestrate.js sync` | 捕获手动安装的新技能并静默归档至冷库 |
 | **“查看 Token 占用状态”** / **“技能诊断”** | `node scripts/orchestrate.js telemetry` | 打印可视化的 Token 仪表盘与健康度报告 |
 | **“项目开发完成了”** / **“清理临时技能”** | `node scripts/orchestrate.js cleanup` | 项目结项，一键清理项目局部临时技能 |
@@ -57,7 +66,7 @@ When this skill is active, the AI Agent adheres to the following lifecycle workf
 2. **Requirements Alignment Phase**:
    - 0 extra skills loaded in the project directory. Rapid, lightweight product requirement discussion.
 3. **Dependency & Requirements Finalization Phase (`infer` & `fetch`)**:
-   - AI automatically inspects `package.json` and project text to match cold archive (or Vercel cloud registry).
+   - AI automatically inspects project dependencies, file extensions, and chat intent to match cold archive (or Vercel cloud registry).
    - Copies matching 2-3 skills into `./.agents/skills/`.
    - **Outputs Proactive Telemetry Report Card with concise origin tags**.
 4. **Development Execution Phase (`Incremental Addition`)**:
@@ -70,7 +79,7 @@ When this skill is active, the AI Agent adheres to the following lifecycle workf
 ## 🛠️ CLI Operations
 
 - `node scripts/orchestrate.js init` - Setup archive vault and optimize global skills.
-- `node scripts/orchestrate.js infer` - Scan package.json and infer dependency skills.
+- `node scripts/orchestrate.js infer` - Scan package.json/project files and infer dependency skills.
 - `node scripts/orchestrate.js sync` - Auto-detect manually added npx skills and migrate to archive.
 - `node scripts/orchestrate.js cleanup` - Clean project-level skills upon completion.
 - `node scripts/orchestrate.js telemetry` - Display active vs archived skills token status.
