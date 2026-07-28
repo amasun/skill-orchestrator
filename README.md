@@ -159,7 +159,12 @@ sudo apt-get update -y && sudo apt-get install -y nodejs npm
 
 ## 🚀 Quick Start & Installation
 
-### One-Line Install
+### 1. Install via NPM Registry
+```bash
+npx skills add skill-orchestrator
+```
+
+### 2. Install via GitHub Repository
 ```bash
 npx skills add amasun/skill-orchestrator
 ```

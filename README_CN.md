@@ -175,7 +175,12 @@ sudo apt-get update -y && sudo apt-get install -y nodejs npm
 
 ## 安装与使用
 
-### 一键安装 (Distribution)
+### 1. 通过 NPM 官方注册表安装
+```bash
+npx skills add skill-orchestrator
+```
+
+### 2. 通过 GitHub 仓库直接安装
 ```bash
 npx skills add amasun/skill-orchestrator
 ```
