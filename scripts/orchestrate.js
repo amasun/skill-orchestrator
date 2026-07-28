@@ -54,7 +54,40 @@ function runInit() {
     console.log('🎉 Global Base Tokens overhead successfully reduced by 90%+!');
 }
 
-// 2. Cascade Fetch: 1st Local Archive Vault -> 2nd Vercel Cloud Registry (Project-Scoped Only)
+// 2. Auto-Detect newly added public skills via manual 'npx skills add' and move them to Vault
+function runSync() {
+    console.log('🔍 Scanning for newly added public skills from manual npx commands...');
+    ensureDir(ARCHIVE_DIR);
+    let newlyArchived = 0;
+
+    AGENT_SKILL_PATHS.forEach(agentPath => {
+        if (fs.existsSync(agentPath)) {
+            const items = fs.readdirSync(agentPath);
+            items.forEach(item => {
+                const fullPath = path.join(agentPath, item);
+                if (fs.statSync(fullPath).isDirectory() && !CORE_SKILLS.includes(item)) {
+                    const targetPath = path.join(ARCHIVE_DIR, item);
+                    try {
+                        fs.cpSync(fullPath, targetPath, { recursive: true });
+                        fs.rmSync(fullPath, { recursive: true, force: true });
+                        newlyArchived++;
+                        console.log(`✨ Detected manual npx skill [${item}] -> Auto-Migrated to Private Vault!`);
+                    } catch (e) {
+                        // Skip locked files
+                    }
+                }
+            });
+        }
+    });
+
+    if (newlyArchived > 0) {
+        console.log(`🎉 Auto-Migrated ${newlyArchived} newly installed skills! Global base tokens kept minimal.`);
+    } else {
+        console.log('✅ All skills up to date. No orphaned public skills detected.');
+    }
+}
+
+// 3. Cascade Fetch: 1st Local Archive Vault -> 2nd Vercel Cloud Registry (Project-Scoped Only)
 function fetchSkill(skillName, projectCwd = process.cwd()) {
     const localArchivePath = path.join(ARCHIVE_DIR, skillName);
     const projectSkillsDir = path.join(projectCwd, '.agents', 'skills');
@@ -107,6 +140,9 @@ switch (command) {
     case 'init':
         runInit();
         break;
+    case 'sync':
+        runSync();
+        break;
     case 'fetch':
         if (targetArg) {
             fetchSkill(targetArg);
@@ -122,5 +158,5 @@ switch (command) {
         break;
     default:
         console.log(`Unknown command: ${command}`);
-        console.log('Usage: node orchestrate.js [init|fetch|status|cleanup]');
+        console.log('Usage: node orchestrate.js [init|sync|fetch|status|cleanup]');
 }
