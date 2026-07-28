@@ -625,7 +625,7 @@ switch (command) {
         break;
     default:
         console.log(`
-Skill Orchestrator Engine (v4.0) - Dynamic Path Registry Edition
+Skill Orchestrator Engine (v3.2.0) - Dynamic Path Registry Edition
 
 Usage:
   node scripts/orchestrate.js init      - Dynamically discover IDEs, record original paths & consolidate to Vault

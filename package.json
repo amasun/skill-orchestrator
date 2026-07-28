@@ -1,7 +1,7 @@
 {
   "name": "skill-orchestrator",
-  "version": "3.1.0",
-  "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization (v3.1 Smart Multi-IDE Eject Edition)",
+  "version": "3.2.0",
+  "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization (v3.2.0 Dynamic Path Registry Edition)",
   "main": "scripts/orchestrate.js",
   "bin": {
     "skill-orchestrator": "scripts/orchestrate.js"
