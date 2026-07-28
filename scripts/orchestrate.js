@@ -6,6 +6,7 @@ const HOME_DIR = process.env.USERPROFILE || process.env.HOME;
 // Unified Shared Cold Archive Vault across all IDEs and Agent Assistants
 const ARCHIVE_DIR = process.env.SKILLS_ARCHIVE_DIR || path.join(HOME_DIR, '.agents', 'skills_archive');
 const REGISTRY_FILE = path.join(ARCHIVE_DIR, 'vault_registry.json');
+const GLOBAL_CONFIG_FILE = path.join(HOME_DIR, '.agents', 'config.json');
 
 // Well-known Agent skill directories seed list
 const KNOWN_AGENT_SKILL_PATHS = [
@@ -124,6 +125,50 @@ function safeCopy(sourcePath, targetPath) {
     } catch (e) {
         return false;
     }
+}
+
+// Multi-tier user customization for Token Guard Limit
+// Priority: CLI Flag -> Env Var -> Project package.json -> Global Config (~/.agents/config.json) -> Default 5
+function resolveMaxSkillsLimit(projectCwd = process.cwd()) {
+    const args = process.argv.slice(2);
+    for (let i = 0; i < args.length; i++) {
+        if (args[i].startsWith('--limit=')) {
+            const val = parseInt(args[i].split('=')[1], 10);
+            if (!isNaN(val) && val > 0) return val;
+        }
+        if ((args[i] === '--limit' || args[i] === '-l') && args[i + 1]) {
+            const val = parseInt(args[i + 1], 10);
+            if (!isNaN(val) && val > 0) return val;
+        }
+    }
+
+    if (process.env.MAX_SKILLS_LIMIT) {
+        const val = parseInt(process.env.MAX_SKILLS_LIMIT, 10);
+        if (!isNaN(val) && val > 0) return val;
+    }
+
+    const pkgPath = path.join(projectCwd, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+        try {
+            const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+            if (pkg['skill-orchestrator'] && pkg['skill-orchestrator'].maxSkills) {
+                const val = parseInt(pkg['skill-orchestrator'].maxSkills, 10);
+                if (!isNaN(val) && val > 0) return val;
+            }
+        } catch (e) {}
+    }
+
+    if (fs.existsSync(GLOBAL_CONFIG_FILE)) {
+        try {
+            const cfg = JSON.parse(fs.readFileSync(GLOBAL_CONFIG_FILE, 'utf-8'));
+            if (cfg.maxSkills) {
+                const val = parseInt(cfg.maxSkills, 10);
+                if (!isNaN(val) && val > 0) return val;
+            }
+        } catch (e) {}
+    }
+
+    return 5;
 }
 
 // -------------------------------------------------------------------
@@ -323,14 +368,22 @@ function runInfer(projectCwd = process.cwd()) {
     }
     scanExtensions(projectCwd);
 
+    const maxSkillsLimit = resolveMaxSkillsLimit(projectCwd);
+
     if (matchedSkills.size === 0) {
         console.log('ℹ️ No specific tech stack dependencies auto-detected in project files.');
     } else {
-        console.log(`✅ Auto-detected ${matchedSkills.size} matching skills from project stack:`);
-        matchedSkills.forEach((reason, skill) => {
+        console.log(`✅ Auto-detected ${matchedSkills.size} matching skills from project stack (Safety Cap: ${maxSkillsLimit}):`);
+        let loadedCount = 0;
+        for (const [skill, reason] of matchedSkills.entries()) {
+            if (loadedCount >= maxSkillsLimit) {
+                console.warn(`\n⚠️ Token Guard Alert: Matched skills exceeded safety cap of ${maxSkillsLimit}. Skipped remaining ${matchedSkills.size - loadedCount} skills to preserve Token budget.`);
+                break;
+            }
             console.log(`   ├── Loading: [${skill}] (Triggered by: ${reason})`);
             fetchSkillWithCircuitBreaker(skill, reason, projectCwd);
-        });
+            loadedCount++;
+        }
     }
 
     // Output Telemetry Status
@@ -625,11 +678,11 @@ switch (command) {
         break;
     default:
         console.log(`
-Skill Orchestrator Engine (v3.2.0) - Dynamic Path Registry Edition
+Skill Orchestrator Engine (v3.2.1) - Token Guard & Dynamic Path Registry Edition
 
 Usage:
   node scripts/orchestrate.js init      - Dynamically discover IDEs, record original paths & consolidate to Vault
-  node scripts/orchestrate.js infer     - Infer dependencies from project stack & auto-load skills
+  node scripts/orchestrate.js infer     - Infer dependencies from project stack & auto-load skills (--limit=N)
   node scripts/orchestrate.js sync      - Auto-detect manual npx skills, update registry & migrate to vault
   node scripts/orchestrate.js status    - Display active vs archived skills token telemetry
   node scripts/orchestrate.js cleanup   - Clean up project-level skills
