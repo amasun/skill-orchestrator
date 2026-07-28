@@ -12,7 +12,7 @@ An open, cross-platform Agent Skill that provides automated zero-base-token skil
 
 ---
 
-## 📢 首轮对话与手动唤醒汇报规范 (Proactive & Manual Telemetry Report Protocol)
+## 首轮对话与手动唤醒汇报规范 (Proactive & Manual Telemetry Report Protocol)
 
 ### 唤醒方式：
 1. **自动触发**：新项目需求定稿 / 中途新增大模块技能时，AI 自动在回复末尾呈现。
@@ -46,7 +46,7 @@ Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
 
 ---
 
-## 🌐 5 大云端/本地注册表级联引擎 (5-Registry Universal Resolution Engine)
+## 5 大云端/本地注册表级联引擎 (5-Registry Universal Resolution Engine)
 
 | 注册表来源 | 维护主体 | 核心差异化领域 | 自动匹配/拉取逻辑 |
 | :--- | :--- | :--- | :--- |
@@ -58,7 +58,7 @@ Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
 
 ---
 
-## 🛠️ CLI Operations (命令行工具操作)
+## CLI Operations (命令行工具操作)
 
 - `node scripts/orchestrate.js init` - Setup archive vault and optimize global skills.
 - `node scripts/orchestrate.js infer` - Scan package.json/project files and infer dependency skills.
@@ -68,11 +68,11 @@ Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
 
 ---
 
-## 🗣️ 斜杠指令与自然语言触发 (Triggers & Shortcuts)
+## 斜杠指令与自然语言触发 (Triggers & Shortcuts)
 
 在 AI 对话框中，直接输入**斜杠指令**或**自然语言**即可自动触发后台操作：
 
-| 斜杠指令 (支持 Tab 补全) | 替代语法 | 自然语言口语表述 | 后台自动执行 |
+| 斜杠指令 (最推荐 - 支持 IDE 敲 / 自动补全) | 替代语法 | 自然语言口语表述 | 后台自动执行 |
 | :---: | :---: | :--- | :--- |
 | **`/status`** | `$status` / `status` | **“查看 Token 占用”、“技能诊断”** | `npm run status` |
 | **`/init`** | `$init` / `init` | **“初始化技能库”、“清空开局占用”** | `npm run init` |
@@ -82,7 +82,7 @@ Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
 
 ---
 
-## 🏛️ Orchestration Protocol & Workflow
+## Orchestration Protocol & Workflow
 
 When this skill is active, the AI Agent adheres to the following lifecycle workflow:
 
