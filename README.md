@@ -26,9 +26,9 @@
 | 目录路径 (Directory Path) | 目录角色与定位 | 加载与匹配优先级 | Token 空间影响 | 生命周期与清理 |
 | :--- | :--- | :---: | :---: | :--- |
 | **`<项目根目录>/.agents/skills/`** | **本项目专属动态技能目录** (Project Scope) | **第 1 优先级** (优先复用当前项目内已装载技能) | 仅在当前项目占用 (~300-500 Tokens) | 项目结项使用 `/cleanup` 一键清理 |
-| **`~/.gemini/antigravity/skills_archive/`** | **本地私有冷归档库** (Local Cold Archive Vault) | **第 2 优先级** (命中即 0ms 复制入项目，截断网络) | **0 Tokens** (完全冷冻，开局 0 占用) | 永久私有保存，绝对不随项目清理 |
-| **`~/.gemini/config/skills/`** | **全局热底座目录** (Hot Core Base) | **第 3 优先级** (仅常驻 2-3 个通用核心 Skill) | 保持极低开销 (&le; 500 Tokens) | 常驻热加载 |
-| **`~/.agents/skills/`**<br>**`~/.claude/skills/`**<br>**`~/.trae-cn/skills/`** | **各 IDE / Agent 全局公共目录** (Public Skill Folders) | **自动巡检捕获** (检测用户手动 `npx` 安装的新技能) | 触发 `runSync` 后恢复极简 | 巡检捕获后自动迁移移入 `skills_archive/` |
+| **`~/.<agent>/skills_archive/`** | **本地私有冷归档库** (Local Cold Archive Vault) | **第 2 优先级** (命中即 0ms 复制入项目，截断网络) | **0 Tokens** (完全冷冻，开局 0 占用) | 永久私有保存，绝对不随项目清理 |
+| **`~/.<ide-or-agent>/skills/`** | **当前 IDE / Agent 全局热底座目录** (Hot Core Base) | **第 3 优先级** (仅常驻 2-3 个通用核心 Skill) | 保持极低开销 (&le; 500 Tokens) | 常驻热加载 |
+| **`~/.agents/skills/`**<br>**`~/.claude/skills/`**<br>**`~/.trae-cn/skills/`** | **第三方 Agent 全局公共目录** (Public Skill Folders) | **自动巡检捕获** (检测用户手动 `npx` 安装的新技能) | 触发 `runSync` 后恢复极简 | 巡检捕获后自动迁移移入 `skills_archive/` |
 
 ---
 
@@ -222,7 +222,7 @@ npm run cleanup
 
 ## 变更与迭代历史 (Changelog)
 
-- **v2.2.6 (2026-07-28)**：增加技能存储路径与加载优先级对照表（明确描述 `.agents/skills/`、`skills_archive/` 与 `config/skills/` 的职责与优先级）。
-- **v2.2.5 (2026-07-28)**：扩充完善 Q&A 清单至 10 大核心直击痛点问题。
+- **v2.2.7 (2026-07-28)**：泛化第 3 优先级目录表述为 `~/.<ide-or-agent>/skills/`（当前 IDE / Agent 全局热底座目录），消除特定厂商偏好。
+- **v2.2.6 (2026-07-28)**：增加技能存储路径与加载优先级对照表。
 - **v2.2.0 (2026-07-28)**：全盘在底层代码实现 5 大云端/本地注册表源的自动匹配与精准拉取。
 - **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块。
