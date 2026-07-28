@@ -11,7 +11,7 @@
 | 痛点问题 | 传统模式 (All Preloaded) | 本策略架构 (工业级全模块架构) |
 | :--- | :--- | :--- |
 | **开局 Token 占用** | ~9,757 Tokens (占用近 50% 预算槽) | **~0 - 500 Tokens** (节省 95%+) |
-| **技能推断维度** | 依赖人类口头语言描述与 LLM 语义猜测 | **代码层多源自动推断** (读 `package.json`/语言配置文件/代码后缀 + 语义) |
+| **技能推断维度** | 依赖人类口头语言描述与 LLM 语义猜测 | **代码层 5 维自动推断** (扫 `package.json`/配置文件/代码后缀 + 语义) |
 | **云端源覆盖度** | 单一依赖 Vercel 注册表 | **全网多云端源级联支持** (Vercel, Upskill, GitHub Orgs, CDN, 私有Org) |
 | **响应速度与费用** | 每轮对话重复计算 10k Token 提示词 | **Prompt Cache 缓存锚点** (闪电提速 4x，费用降低 90%) |
 | **可观察性与监控** | 无法感知技能占用的具体 Token 权重 | **Token Telemetry 诊断仪表盘** (可视健康度柱状输出 + 多源标注) |
@@ -39,6 +39,29 @@
 4. **全网多云端源与本地注册表无缝级联**：支持 Vercel、Upskill 安全库、GitHub 官方组织仓库 (`owner/repo`)、国内极速 CDN 及团队私有库。
 5. **透明 Token 汇报卡与 100% 来源追溯**：项目首轮或随时使用 `/status` 输出极简健康汇报卡，精准标注每个技能的来源出处与推断依据。
 6. **Prompt Cache 缓存锚点注入**：自动在装载技能中注入 `<!-- @cache-control: ephemeral -->` 头部，提高 4 倍响应速度并降低 90% 费用。
+
+---
+
+## 🔍 5 维多源自动推断逻辑 (5-Layer Multi-Dimensional Inference Pipeline)
+
+系统通过代码层与语义层的 5 维智能推断管道，零沟通精准判别并装载项目所需的技能：
+
+```text
+项目源码 / 配置 / 对话
+ ├── 1. 包配置文件扫描 (package.json / requirements.txt / Cargo.toml / go.mod)
+ ├── 2. 代码特征与后缀扫描 (.glsl / .swift / .sqlx / .figma.ts)
+ ├── 3. 用户对话意图与语义匹配 ("做个磨砂玻璃 UI" / "检查 API 安全头")
+ ├── 4. 显式斜杠快捷唤醒 (/solidity, /gsap-core)
+ └── 5. 三级级联查找与去重锁 (项目局部 -> 私有冷库 -> 多云端源)
+```
+
+| 推断维度 | 触发探测源 | 典型匹配示例 |
+| :--- | :--- | :--- |
+| **1. 依赖配置文件** | `package.json`, `requirements.txt`, `Cargo.toml` | 扫到 `"three"` ➔ `3d-web-experience`；扫到 `"torch"` ➔ `ml-best-practices` |
+| **2. 代码后缀特征** | `.glsl`, `.vert`, `.frag`, `.swift`, `.sqlx` | 发现 `.glsl` ➔ `web-shader-extractor`；发现 `.swift` ➔ `figma-swiftui` |
+| **3. 对话语义意图** | 自然语言需求描述 | 提到“毛玻璃暗黑 UI” ➔ `ditther-dark-glass`；提到“SQL 注入审计” ➔ `upskill/sec-header` |
+| **4. 显式斜杠唤醒** | 斜杠指令或唤醒词 | 输入 `/solidity` ➔ 显式精确装载 `solidity` 智能合约技能 |
+| **5. 级联去重查找** | 磁盘目录锁 & 网络 API | 命中项目目录 (0ms) ➔ 命中冷库 (0ms) ➔ 级联多云端源 |
 
 ---
 
@@ -125,16 +148,16 @@ flowchart TD
 ------------------------------------------------------------
 [Project Skills & Token Telemetry]
 ------------------------------------------------------------
-全局热底座开销 : ~420 Tokens [Status: Healthy 🟢]
-本项目专属装载 : 
-   ├── 3d-web-experience   : 450 Tokens (来源: 本地冷库 | 推断: package.json)
-   ├── web-shader-extractor: 380 Tokens (来源: 本地冷库 | 推断: 代码特征 [.glsl])
-   ├── upskill/sec-header  : 460 Tokens (来源: Upskill安全库 | 推断: 安全审计)
-   ├── stripe/agent-skills : 510 Tokens (来源: GitHub组织 | 推断: 依赖匹配)
-   └── svelte-kit          : 470 Tokens (来源: Vercel云端 | 推断: 需求意图)
+Global Base Overhead : ~420 Tokens [Status: Healthy 🟢]
+Project-Scoped Skills: 
+   ├── 3d-web-experience   : 450 Tokens (Origin: Cold Archive | Infer: package.json)
+   ├── web-shader-extractor: 380 Tokens (Origin: Cold Archive | Infer: Code Feature [.glsl])
+   ├── upskill/sec-header  : 460 Tokens (Origin: Upskill Registry | Infer: Security Audit)
+   ├── stripe/agent-skills : 510 Tokens (Origin: GitHub Org | Infer: Dependency Match)
+   └── svelte-kit          : 470 Tokens (Origin: Vercel Registry | Infer: User Intent)
 ------------------------------------------------------------
-本项目总底座开销 : 2,690 Tokens (较默认全载节省 72.4% 空间)
-Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
+Total Project Token Overhead : 2,690 Tokens (Save 72.4% vs Preload All)
+Prompt Cache Anchor          : Injected (4x Speedup)
 ============================================================
 ```
 
@@ -214,7 +237,8 @@ node scripts/orchestrate.js cleanup # 或 npm run cleanup
 
 ## 变更与迭代历史 (Changelog)
 
-- **v2.3.2 (2026-07-28)**：在 SKILL.md 和 README.md 中显式标注 AI Agent 与 CLI 对 `node scripts/orchestrate.js` 的调用映射关系。
-- **v2.3.1 (2026-07-28)**：简化汇报卡装载列表示例。
+- **v2.5.0 (2026-07-28)**：在 README.md 中新增整合并梳理“5 维多源自动推断逻辑”章节与维度对照表。
+- **v2.4.1 (2026-07-28)**：将 SKILL.md 转换重构为 100% 纯英文 Agent 机器指令协议。
+- **v2.3.0 (2026-07-28)**：清理特定时延表述。
 - **v2.2.0 (2026-07-28)**：全盘在底层代码实现多云端/本地注册表源的自动匹配与精准拉取。
 - **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块。
