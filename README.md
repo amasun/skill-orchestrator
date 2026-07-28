@@ -62,6 +62,9 @@ In any AI Agent chat session, use slash commands or natural language triggers wi
 | **`/init`** | `$init` / `init` | **"Initialize Skill Vault", "Consolidate skills"** | `npx skill-orchestrator init` |
 | **`/infer`** | `$infer` / `infer` | **"Check dependencies", "Auto-match skills"** | `npx skill-orchestrator infer` |
 | **`/sync`** | `$sync` / `sync` | **"Sync manual npx skills", "Update vault"** | `npx skill-orchestrator sync` |
+| **`/sync --ide=gemini`** | `sync gemini` | **"Only sync Gemini skills"** | `npx skill-orchestrator sync --ide=gemini` |
+| **`/sync --ide=claude`** | `sync claude` | **"Only sync Claude skills"** | `npx skill-orchestrator sync --ide=claude` |
+| **`/sync --ide=cursor`** | `sync cursor` | **"Only sync Cursor skills"** | `npx skill-orchestrator sync --ide=cursor` |
 | **`/cleanup`** | `$cleanup` / `cleanup` | **"Project complete", "Clean up project skills"** | `npx skill-orchestrator cleanup` |
 | **`/eject`** | `$eject` / `eject` / `uninstall` | **"Restore skills & eject", "Uninstall orchestrator"** | `npx skill-orchestrator eject` |
 
