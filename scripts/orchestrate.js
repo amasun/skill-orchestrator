@@ -7,7 +7,7 @@ const { execSync } = require('child_process');
 const HOME_DIR = process.env.USERPROFILE || process.env.HOME;
 // Unified Shared Cold Archive Vault across all IDEs and Agent Assistants
 const ARCHIVE_DIR = process.env.SKILLS_ARCHIVE_DIR || path.join(HOME_DIR, '.agents', 'skills_archive');
-const REGISTRY_FILE = path.join(ARCHIVE_DIR, 'vault_registry.json');
+const REGISTRY_FILE = path.join(HOME_DIR, '.agents', 'so_skills_registry.json');
 const GLOBAL_CONFIG_FILE = path.join(HOME_DIR, '.agents', 'config.json');
 
 // Well-known Agent skill directories seed list
@@ -21,59 +21,115 @@ const KNOWN_AGENT_SKILL_PATHS = [
     path.join(HOME_DIR, '.codeium', 'skills')
 ];
 
-const HOT_SKILLS_CONFIG_FILE = path.join(HOME_DIR, '.agents', 'hot_skills.json');
+const BASE_SKILLS_CONFIG_FILE = path.join(HOME_DIR, '.agents', 'base_skills.json');
+const LEGACY_HOT_SKILLS_CONFIG_FILE = path.join(HOME_DIR, '.agents', 'hot_skills.json');
 
-// Load or initialize user's Hot Base Skills configuration (hot_skills.json)
-function loadHotSkillsConfig() {
-    const configDir = path.dirname(HOT_SKILLS_CONFIG_FILE);
+// Universal Meta-Skill Semantic Keywords for Automated Classification
+const META_SKILL_KEYWORDS = [
+    'refactor', 'refactoring', 'workflow', 'debug', 'debugging', 'git',
+    'orchestrat', 'context', 'handoff', 'agentic', 'meta-skill', 'architecture',
+    'test', 'testing', 'documentation', 'problem-solving', 'security', 'code-review',
+    'performance', 'quality'
+];
+
+const DOMAIN_FRAMEWORK_KEYWORDS = [
+    'three', 'three.js', 'react', 'vue', 'svelte', 'shader', 'gsap',
+    'stripe', 'alipay', 'figma', 'bigquery', 'prisma', 'tailwind', 'next.js',
+    'nextjs', 'flutter', 'swiftui', 'python-data'
+];
+
+// Semantic Skill Analyzer: Inspects SKILL.md for universal meta-skill traits
+function analyzeSkillSemantics(skillFolderPath, skillName) {
+    const skillMdPath = path.join(skillFolderPath, 'SKILL.md');
+    if (!fs.existsSync(skillMdPath)) return false;
+
+    try {
+        const content = fs.readFileSync(skillMdPath, 'utf8').toLowerCase();
+        
+        let metaScore = 0;
+        let domainScore = 0;
+
+        META_SKILL_KEYWORDS.forEach(kw => {
+            if (content.includes(kw)) metaScore++;
+        });
+
+        DOMAIN_FRAMEWORK_KEYWORDS.forEach(kw => {
+            if (content.includes(kw)) domainScore++;
+        });
+
+        // Boost score for explicit workflow / refactoring / orchestrator in skill name
+        const lowerName = skillName.toLowerCase();
+        if (lowerName.includes('workflow') || lowerName.includes('refactoring') || lowerName.includes('orchestrator') || lowerName.includes('agentic')) {
+            metaScore += 3;
+        }
+
+        // Classify as Base Skill if universal traits dominate domain traits
+        return metaScore >= 2 && metaScore >= domainScore;
+    } catch (e) {
+        return false;
+    }
+}
+
+// Load or initialize user's Base Skills configuration (base_skills.json)
+function loadBaseSkillsConfig() {
+    const configDir = path.dirname(BASE_SKILLS_CONFIG_FILE);
     ensureDir(configDir);
 
     const defaultConfig = {
-        version: "1.0.0",
-        description: "User Custom Hot Base Skills Configuration. Skills listed in 'core_hot_skills' will NEVER be moved to Cold Vault.",
-        core_hot_skills: [
-            "z-coding-refactoring",
-            "agentic-workflow",
-            "find-skills",
-            "skill-orchestrator"
-        ],
-        custom_protected_paths: []
+        version: "1.1.0",
+        description: "User Custom Base Skills Configuration. Skills listed in 'core_base_skills' will NEVER be moved to Cold Vault.",
+        core_base_skills: ['agentic-workflow', 'find-skills', 'z-coding-refactoring']
     };
 
-    if (!fs.existsSync(HOT_SKILLS_CONFIG_FILE)) {
+    // Auto-migrate legacy base_skills.json or hot_skills.json into unified REGISTRY_FILE
+    if (fs.existsSync(BASE_SKILLS_CONFIG_FILE)) {
         try {
-            fs.writeFileSync(HOT_SKILLS_CONFIG_FILE, JSON.stringify(defaultConfig, null, 2), 'utf8');
-            console.log(`📝 Initialized User Hot Base Config: ${HOT_SKILLS_CONFIG_FILE}`);
+            const raw = fs.readFileSync(BASE_SKILLS_CONFIG_FILE, 'utf8');
+            const parsed = JSON.parse(raw);
+            const legacyBase = parsed.core_base_skills || parsed.core_hot_skills;
+            if (Array.isArray(legacyBase)) {
+                defaultConfig.core_base_skills = Array.from(new Set([...defaultConfig.core_base_skills, ...legacyBase]));
+            }
+            // Remove legacy file after migration
+            try { fs.unlinkSync(BASE_SKILLS_CONFIG_FILE); } catch (e) {}
         } catch (e) {}
-        return defaultConfig.core_hot_skills;
     }
 
-    try {
-        const raw = fs.readFileSync(HOT_SKILLS_CONFIG_FILE, 'utf8');
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed.core_hot_skills)) {
-            return parsed.core_hot_skills;
-        }
-    } catch (e) {}
+    if (fs.existsSync(REGISTRY_FILE)) {
+        try {
+            const raw = fs.readFileSync(REGISTRY_FILE, 'utf8');
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed.core_base_skills)) {
+                return parsed.core_base_skills;
+            }
+        } catch (e) {}
+    }
 
-    return defaultConfig.core_hot_skills;
+    return defaultConfig.core_base_skills;
 }
 
-// Dynamically add a newly inferred meta-skill into user's hot_skills.json
-function addSkillToHotConfig(skillName) {
+// Dynamically add a newly inferred/analyzed meta-skill into unified REGISTRY_FILE
+function addSkillToBaseConfig(skillName) {
     try {
-        const raw = fs.readFileSync(HOT_SKILLS_CONFIG_FILE, 'utf8');
-        const config = JSON.parse(raw);
-        if (Array.isArray(config.core_hot_skills) && !config.core_hot_skills.includes(skillName)) {
-            config.core_hot_skills.push(skillName);
-            fs.writeFileSync(HOT_SKILLS_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
-            console.log(`📌 Dynamically added [${skillName}] to Hot Base Whitelist in ${HOT_SKILLS_CONFIG_FILE}`);
+        const registryData = loadRegistry();
+        if (!Array.isArray(registryData.core_base_skills)) {
+            registryData.core_base_skills = ['agentic-workflow', 'find-skills', 'z-coding-refactoring'];
+        }
+        if (!registryData.core_base_skills.includes(skillName)) {
+            registryData.core_base_skills.push(skillName);
+            registryData.updatedAt = new Date().toISOString();
+            ensureDir(path.dirname(REGISTRY_FILE));
+            fs.writeFileSync(REGISTRY_FILE, JSON.stringify(registryData, null, 2), 'utf-8');
+            console.log(`📌 Dynamically added [${skillName}] to Base Skills Whitelist in ${REGISTRY_FILE}`);
+            if (!BASE_SKILLS.includes(skillName)) {
+                BASE_SKILLS.push(skillName);
+            }
         }
     } catch (e) {}
 }
 
-// Dynamically resolved Core Hot Skills whitelist from hot_skills.json
-const CORE_SKILLS = loadHotSkillsConfig();
+// Dynamically resolved Core Base Skills whitelist from REGISTRY_FILE
+const BASE_SKILLS = loadBaseSkillsConfig();
 
 // -------------------------------------------------------------------
 // Dynamic IDE Discovery & Vault Registry Engine
@@ -142,28 +198,261 @@ function discoverAllSkillPaths(ideFilter = getIdeFilter()) {
     return allPaths;
 }
 
-// Read vault_registry.json
+// Read vault_registry.json (Unified Cold Vault Management Index)
 function loadRegistry() {
-    if (!fs.existsSync(REGISTRY_FILE)) return {};
+    if (!fs.existsSync(REGISTRY_FILE)) return { version: '1.2.0', skills: {} };
     try {
-        return JSON.parse(fs.readFileSync(REGISTRY_FILE, 'utf-8')) || {};
-    } catch (e) {
-        return {};
-    }
+        const parsed = JSON.parse(fs.readFileSync(REGISTRY_FILE, 'utf-8'));
+        if (parsed && parsed.skills && typeof parsed.skills === 'object') {
+            return parsed;
+        }
+        // Migration from legacy flat object structure { "skill-name": ["path1", "path2"] }
+        if (parsed && typeof parsed === 'object') {
+            const migrated = { version: '1.2.0', skills: {} };
+            Object.keys(parsed).forEach(k => {
+                if (k === 'version' || k === 'updatedAt') return;
+                migrated.skills[k] = {
+                    origins: Array.isArray(parsed[k]) ? parsed[k] : [parsed[k]],
+                    status: 'active'
+                };
+            });
+            return migrated;
+        }
+    } catch (e) {}
+    return { version: '1.2.0', skills: {} };
 }
 
-// Save origin path mapping into vault_registry.json
-function recordSkillOrigin(skillName, originalPath) {
+// Save origin path mapping and rich metadata into vault_registry.json
+function recordSkillOrigin(skillName, originalPath, meta = {}) {
     try {
-        const registry = loadRegistry();
-        if (!registry[skillName]) {
-            registry[skillName] = [];
+        const registryData = loadRegistry();
+        if (!registryData.skills[skillName]) {
+            registryData.skills[skillName] = { origins: [], status: 'active' };
         }
-        if (!registry[skillName].includes(originalPath)) {
-            registry[skillName].push(originalPath);
+        const item = registryData.skills[skillName];
+        if (originalPath && !item.origins.includes(originalPath)) {
+            item.origins.push(originalPath);
         }
+        if (meta.purpose) item.purpose = meta.purpose;
+        if (meta.description) item.description = meta.description;
+        if (meta.tokens) item.tokens = meta.tokens;
+        if (meta.status) item.status = meta.status;
+
+        registryData.updatedAt = new Date().toISOString();
         ensureDir(ARCHIVE_DIR);
-        fs.writeFileSync(REGISTRY_FILE, JSON.stringify(registry, null, 2), 'utf-8');
+        fs.writeFileSync(REGISTRY_FILE, JSON.stringify(registryData, null, 2), 'utf-8');
+    } catch (e) {}
+}
+
+// Rebuild & update vault_registry.json management index with rich metadata for both Base and Vault skills
+function rebuildVaultRegistryIndex() {
+    try {
+        let registryData = {
+            version: '2.1.0',
+            updatedAt: new Date().toISOString(),
+            core_base_skills: BASE_SKILLS || ['agentic-workflow', 'find-skills', 'z-coding-refactoring'],
+            skills: {}
+        };
+        let legacyData = {};
+        if (fs.existsSync(REGISTRY_FILE)) {
+            try {
+                legacyData = JSON.parse(fs.readFileSync(REGISTRY_FILE, 'utf-8'));
+                if (Array.isArray(legacyData.core_base_skills)) {
+                    registryData.core_base_skills = legacyData.core_base_skills;
+                }
+            } catch (e) {}
+        }
+
+        const addSkillMetaData = (item, skillDir, isBase) => {
+            const skillMd = path.join(skillDir, 'SKILL.md');
+            if (fs.existsSync(skillMd)) {
+                try {
+                    const content = fs.readFileSync(skillMd, 'utf8');
+                    const descMatch = content.match(/description:\s*"?(.*?)"?\n/i);
+                    const description = descMatch ? descMatch[1].trim() : '';
+                    const purpose = getSkillShortPurpose(item, skillDir);
+                    const tokens = estimateTokens(content);
+
+                    let origins = [];
+                    if (legacyData.skills && legacyData.skills[item] && Array.isArray(legacyData.skills[item].origins)) {
+                        origins = legacyData.skills[item].origins;
+                    } else {
+                        origins = [skillDir];
+                    }
+
+                    const status = (legacyData.skills && legacyData.skills[item] && legacyData.skills[item].status) 
+                        ? legacyData.skills[item].status 
+                        : 'active';
+
+                    registryData.skills[item] = {
+                        category: isBase ? 'base' : 'vault',
+                        status,
+                        purpose,
+                        description,
+                        tokens,
+                        origins
+                    };
+                } catch (e) {}
+            }
+        };
+
+        // 1. Scan Base Skills across all discovered IDE skill paths
+        const allSkillPaths = discoverAllSkillPaths();
+        registryData.core_base_skills.forEach(baseName => {
+            allSkillPaths.forEach(basePath => {
+                const targetDir = path.join(basePath, baseName);
+                if (fs.existsSync(targetDir)) {
+                    addSkillMetaData(baseName, targetDir, true);
+                }
+            });
+        });
+
+        // 2. Scan Vault Archive Skills
+        if (fs.existsSync(ARCHIVE_DIR)) {
+            const items = fs.readdirSync(ARCHIVE_DIR);
+            items.forEach(item => {
+                if (item === 'vault_registry.json' || item.startsWith('.')) return;
+                const skillDir = path.join(ARCHIVE_DIR, item);
+                const isBase = registryData.core_base_skills.includes(item);
+                addSkillMetaData(item, skillDir, isBase);
+            });
+        }
+
+        ensureDir(path.dirname(REGISTRY_FILE));
+        fs.writeFileSync(REGISTRY_FILE, JSON.stringify(registryData, null, 2), 'utf-8');
+    } catch (e) {}
+}
+
+// Standalone Skill Orchestrator Control Panel (Dual-Track Twin Files: so_skills_registry.md & so_skills_registry.json)
+const SKILLS_ORCHESTRATOR_MD_FILE = path.join(HOME_DIR, '.agents', 'so_skills_registry.md');
+const LEGACY_MANAGER_MD_FILE = path.join(HOME_DIR, '.agents', 'skills_orchestrator.md');
+
+function categorizeSkillDomain(name, item = {}) {
+    const n = name.toLowerCase();
+    const desc = (item.description || '').toLowerCase();
+
+    if (n.startsWith('figma-')) return 'figma';
+
+    if (n.includes('gsap') || n.includes('design') || n.includes('animation') || n.includes('3d') || n.includes('shadcn') || n.includes('ui-ux') || n.includes('vibe') || desc.includes('motion') || desc.includes('glassmorphism')) {
+        return 'ui_motion';
+    }
+
+    if (n.includes('bigquery') || n.includes('dataform') || n.includes('dbt') || n.includes('gcp') || n.includes('lakehouse') || desc.includes('bigquery') || desc.includes('airflow')) {
+        return 'bigdata';
+    }
+
+    if (n === 'docx' || n === 'pptx' || n === 'xlsx' || n === 'pdf') {
+        return 'docs';
+    }
+
+    if (n.includes('refactor') || n.includes('debug') || n.includes('workflow') || n.includes('handoff') || n.includes('find-skills') || n.includes('dependency') || n.includes('git')) {
+        return 'engineering';
+    }
+
+    return 'other';
+}
+
+// Dual-Track Sync Engine: Bi-directional mapping between JSON index and Markdown Panel
+function generateOrSyncSkillsManagerMd() {
+    const registryData = loadRegistry();
+    const skills = registryData.skills || {};
+    const baseList = Array.from(new Set([...(registryData.core_base_skills || []), ...(BASE_SKILLS || []), 'skill-orchestrator']));
+
+    let existingStatuses = {};
+    let existingContent = '';
+
+    // Auto-migrate legacy MD files if they exist
+    const targetMdFile = fs.existsSync(SKILLS_ORCHESTRATOR_MD_FILE) 
+        ? SKILLS_ORCHESTRATOR_MD_FILE 
+        : (fs.existsSync(LEGACY_MANAGER_MD_FILE) ? LEGACY_MANAGER_MD_FILE : SKILLS_ORCHESTRATOR_MD_FILE);
+
+    if (fs.existsSync(targetMdFile)) {
+        try {
+            existingContent = fs.readFileSync(targetMdFile, 'utf-8');
+            const skillRegex = /- \[(x| )\] \*\*([a-zA-Z0-9-_]+)\*\*/g;
+            let match;
+            while ((match = skillRegex.exec(existingContent)) !== null) {
+                existingStatuses[match[2]] = match[1] === 'x' ? 'active' : 'disabled';
+            }
+        } catch (e) {}
+    }
+
+    // Sync Markdown [x] / [ ] statuses back to JSON registry status
+    Object.keys(existingStatuses).forEach(name => {
+        if (skills[name]) {
+            skills[name].status = existingStatuses[name];
+        }
+    });
+
+    // Write updated registry JSON back
+    try {
+        fs.writeFileSync(REGISTRY_FILE, JSON.stringify(registryData, null, 2), 'utf-8');
+    } catch (e) {}
+
+    // Re-generate structured so_skills_registry.md with clean category domains
+    let md = `# 🌐 Skill Orchestrator Control Panel (so_skills_registry)\n\n`;
+    md += `Standalone Human-Control Panel for Skill Orchestration & Dynamic Status Switch.\n\n`;
+    md += `--- \n\n## 📜 Protocol\n`;
+    md += `1. **Pre-Check**: Inspect \`[x]\` / \`[ ]\` checkbox status before executing skills.\n`;
+    md += `2. **Silent Fallback**: If a skill is unchecked \`[ ]\`, fall back to general AI model capability.\n\n`;
+
+    const allNames = Array.from(new Set([...Object.keys(skills), ...baseList])).sort();
+    const baseNames = allNames.filter(n => baseList.includes(n) || (skills[n] && skills[n].category === 'base'));
+    const vaultNames = allNames.filter(n => !baseNames.includes(n));
+
+    // Category 1: Base Skills
+    md += `---\n\n## 🛡️ Global Core Base Skills (常驻全局热底座)\n`;
+    md += `Always active in memory across all projects. Zero cold-start latency.\n\n`;
+    baseNames.forEach(name => {
+        const item = skills[name];
+        const isChecked = item.status !== 'disabled' ? 'x' : ' ';
+        const tokenStr = item.tokens ? ` (~${item.tokens} Tokens)` : '';
+        md += `- [${isChecked}] **${name}**${tokenStr}: ${item.purpose || (item.description ? item.description.slice(0, 60) : 'Core Base Skill')}\n`;
+    });
+
+    // Group Vault Skills by Domain
+    const categories = {
+        ui_motion: { title: '## 🎨 UI/UX, Motion & Dynamic Design (高端 UI 与动效设计)', items: [] },
+        figma: { title: '## 🎨 Figma Toolchain & Design Systems (Figma 工具链)', items: [] },
+        engineering: { title: '## 🛠️ Core Engineering & Context (核心工程与环境管理)', items: [] },
+        bigdata: { title: '## 📊 BigData, Cloud & Analytics (云与大数据生态)', items: [] },
+        docs: { title: '## 📄 Office & Document Processing (文档与办公套件)', items: [] },
+        other: { title: '## 📦 Specialized Domain Skills (其他专项领域技能)', items: [] }
+    };
+
+    vaultNames.forEach(name => {
+        const item = skills[name];
+        const catKey = categorizeSkillDomain(name, item);
+        if (categories[catKey]) {
+            categories[catKey].items.push(name);
+        } else {
+            categories.other.items.push(name);
+        }
+    });
+
+    // Render Vault Categories
+    Object.keys(categories).forEach(ck => {
+        const cat = categories[ck];
+        if (cat.items.length > 0) {
+            md += `\n---\n\n${cat.title}\n\n`;
+            cat.items.forEach(name => {
+                const item = skills[name];
+                const isChecked = item.status !== 'disabled' ? 'x' : ' ';
+                const tokenStr = item.tokens ? ` (~${item.tokens} Tokens)` : '';
+                md += `- [${isChecked}] **${name}**${tokenStr}: ${item.purpose || (item.description ? item.description.slice(0, 60) : 'Domain Skill')}\n`;
+            });
+        }
+    });
+
+    md += `\n---\n> [!NOTE]\n> Managed by \`skill-orchestrator\`. Last synced: ${new Date().toLocaleString()}\n`;
+
+    try {
+        ensureDir(path.dirname(SKILLS_ORCHESTRATOR_MD_FILE));
+        fs.writeFileSync(SKILLS_ORCHESTRATOR_MD_FILE, md, 'utf-8');
+        if (fs.existsSync(LEGACY_MANAGER_MD_FILE) && LEGACY_MANAGER_MD_FILE !== SKILLS_ORCHESTRATOR_MD_FILE) {
+            try { fs.unlinkSync(LEGACY_MANAGER_MD_FILE); } catch (e) {}
+        }
+        console.log(`📝 Updated Skill Orchestrator Control Panel: ${SKILLS_ORCHESTRATOR_MD_FILE}`);
     } catch (e) {}
 }
 
@@ -337,19 +626,74 @@ function injectCacheControl(skillDir, originInfo) {
     }
 }
 
+// Pre-defined concise skill purpose dictionary (simplest wording)
+const SKILL_PURPOSE_DICT = {
+    '3d-web-experience': 'Three.js与3D Web架构',
+    'web-shader-extractor': 'GLSL着色器解析与特效',
+    'gsap-core': 'GSAP核心补间动画',
+    'gsap-scrolltrigger': '滚动驱动与镜头控制',
+    'gsap-react': 'GSAP React Hook集成',
+    'gsap-plugins': 'GSAP物理与动效插件',
+    'gsap-frameworks': 'GSAP框架动画集成',
+    'gsap-performance': 'GPU动画性能优化',
+    'cinematic-gsap-lenis-motion-system': '电影级平滑运镜',
+    'vibe-coding-design': 'OKLCh视觉审美系统',
+    'animation-vocabulary': 'Web动效词汇反查',
+    'find-animation-opportunities': 'UI动效审查',
+    'agentic-workflow': 'Agent工作流编排',
+    'find-skills': '技能查找与扩展',
+    'z-coding-refactoring': '代码架构重构',
+    'figma-use': 'Figma API核心执行器',
+    'figma-generate-design': 'Figma设计稿生成',
+    'shadcn': 'Shadcn UI组件规范',
+    'apple-design': 'Apple设计风格规范',
+    'alipay-payment-integration': '支付宝支付集成',
+    'bigquery-sql': 'BigQuery SQL数据分析'
+};
+
+function getSkillShortPurpose(skillName, skillDir = null) {
+    if (SKILL_PURPOSE_DICT[skillName]) {
+        return SKILL_PURPOSE_DICT[skillName];
+    }
+    if (skillDir) {
+        const skillMd = path.join(skillDir, 'SKILL.md');
+        if (fs.existsSync(skillMd)) {
+            try {
+                const content = fs.readFileSync(skillMd, 'utf8');
+                const descMatch = content.match(/description:\s*"?(.*?)"?\n/i);
+                if (descMatch && descMatch[1]) {
+                    const desc = descMatch[1].trim();
+                    const shortDesc = desc.split('.')[0].split(',')[0].slice(0, 18).trim();
+                    if (shortDesc.length > 2) return shortDesc;
+                }
+            } catch (e) {}
+        }
+    }
+    return '专项功能支持';
+}
+
 // -------------------------------------------------------------------
 // Module 3: 5-Registry Cascade Resolution Engine (Vercel, Upskill, GitHub Orgs, CDN, Fallback)
 // -------------------------------------------------------------------
 function fetchSkillWithCircuitBreaker(skillName, inferReason = '需求意图', projectCwd = process.cwd()) {
     const sanitizeName = skillName.split('/').pop();
+
+    // Check if skill is disabled by user in Global Manager Panel / Vault Registry
+    const registryData = loadRegistry();
+    if (registryData.skills && registryData.skills[sanitizeName] && registryData.skills[sanitizeName].status === 'disabled') {
+        console.log(`⚠️ [Disabled Skill Guard] Skipping [${sanitizeName}] because it is marked disabled [ ] in Global Skills Manager.`);
+        return { success: false, reason: 'Disabled in Global Manager' };
+    }
+
     const projectTargetPath = path.join(projectCwd, '.agents', 'skills', sanitizeName);
+    const purpose = getSkillShortPurpose(sanitizeName, projectTargetPath);
 
     // Record skill into project's package.json history manifest for zero-loss recovery after cleanup
     recordSkillToProjectPackageJson(sanitizeName, projectCwd);
 
     // Source 1: Local Project Scope (Short-circuit if already present)
     if (fs.existsSync(projectTargetPath)) {
-        return { success: true, origin: '来源: 本项目已已有', reason: inferReason };
+        return { success: true, origin: `本项目已有 | ${purpose}` };
     }
 
     // Source 2: Unified Shared Cold Archive Vault (~/.agents/skills_archive/)
@@ -358,8 +702,8 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = '需求意图', p
         console.log(`📦 Hit Source 2 [统一共享冷库]: 0ms Loading [${sanitizeName}] into project...`);
         ensureDir(path.dirname(projectTargetPath));
         safeCopy(archivePath, projectTargetPath);
-        injectCacheControl(projectTargetPath, `来源: 本地冷库 | 推断: ${inferReason}`);
-        return { success: true, origin: '来源: 本地冷库', reason: inferReason };
+        injectCacheControl(projectTargetPath, `本地冷库 | ${purpose}`);
+        return { success: true, origin: `本地冷库 | ${purpose}` };
     }
 
     // Source 3: Upskill Security Registry (upskill.dev)
@@ -368,8 +712,8 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = '需求意图', p
         try {
             execSync(`npx -y upskill add ${sanitizeName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 5000 });
             if (fs.existsSync(projectTargetPath)) {
-                injectCacheControl(projectTargetPath, `来源: Upskill安全库 | 推断: ${inferReason}`);
-                return { success: true, origin: '来源: Upskill安全库', reason: inferReason };
+                injectCacheControl(projectTargetPath, `Upskill安全库 | ${purpose}`);
+                return { success: true, origin: `Upskill安全库 | ${purpose}` };
             }
         } catch (e) {}
     }
@@ -380,8 +724,8 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = '需求意图', p
         try {
             execSync(`npx -y skills add ${skillName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 5000 });
             if (fs.existsSync(projectTargetPath)) {
-                injectCacheControl(projectTargetPath, `来源: GitHub组织(${skillName}) | 推断: ${inferReason}`);
-                return { success: true, origin: `来源: GitHub组织(${skillName})`, reason: inferReason };
+                injectCacheControl(projectTargetPath, `GitHub组织 | ${purpose}`);
+                return { success: true, origin: `GitHub组织 | ${purpose}` };
             }
         } catch (e) {}
     }
@@ -391,8 +735,8 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = '需求意图', p
         console.log(`⚡ Hit Source 5 [Gitee/CDN极速节点]: Pulling [${sanitizeName}]...`);
         execSync(`npx -y skills add vercel-labs/skills/${sanitizeName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 3000 });
         if (fs.existsSync(projectTargetPath)) {
-            injectCacheControl(projectTargetPath, `来源: Gitee/CDN镜像 | 推断: ${inferReason}`);
-            return { success: true, origin: '来源: Gitee/CDN镜像', reason: inferReason };
+            injectCacheControl(projectTargetPath, `CDN/Gitee镜像 | ${purpose}`);
+            return { success: true, origin: `CDN/Gitee镜像 | ${purpose}` };
         }
     } catch (e) {}
 
@@ -401,16 +745,117 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = '需求意图', p
     try {
         execSync(`npx -y skills add ${sanitizeName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 5000 });
         if (fs.existsSync(projectTargetPath)) {
-            injectCacheControl(projectTargetPath, `来源: Vercel云端 | 仅存项目临时目录 | 推断: ${inferReason}`);
+            injectCacheControl(projectTargetPath, `Vercel云端 | ${purpose}`);
         }
-        return { success: true, origin: '来源: Vercel云端 | 仅存项目临时目录', reason: inferReason };
+        return { success: true, origin: `Vercel云端 | ${purpose}` };
     } catch (err) {
         console.warn(`🛡️ Network Fallback Engine: Generating Local Micro-Template for [${sanitizeName}]...`);
         ensureDir(projectTargetPath);
-        const fallbackMd = `<!-- @cache-control: ephemeral -->\n<!-- @origin: 来源: 本地微模板降级 -->\n---\nname: ${sanitizeName}\ndescription: Fallback offline template for ${sanitizeName}\n---\n# ${sanitizeName} (Fallback Standard)\n\nFollow best practices for ${sanitizeName}.\n`;
+        const fallbackMd = `<!-- @cache-control: ephemeral -->\n<!-- @origin: 本地微模板 | ${purpose} -->\n---\nname: ${sanitizeName}\ndescription: Fallback offline template for ${sanitizeName}\n---\n# ${sanitizeName} (Fallback Standard)\n\nFollow best practices for ${sanitizeName}.\n`;
         fs.writeFileSync(path.join(projectTargetPath, 'SKILL.md'), fallbackMd, 'utf-8');
-        return { success: true, origin: '来源: 本地微模板降级', reason: inferReason };
+        return { success: true, origin: `本地微模板 | ${purpose}` };
     }
+}
+
+// Helper to extract --intent="xxx" flag from CLI
+function getIntentFilter() {
+    const arg = process.argv.find(a => a.startsWith('--intent='));
+    if (arg) return arg.split('=')[1].trim();
+    const idx = process.argv.indexOf('--intent');
+    if (idx !== -1 && process.argv[idx + 1]) return process.argv[idx + 1].trim();
+    return null;
+}
+
+// Semantic Skill Pickup Engine: Analyzes project docs, CLI intent, and skill descriptions
+function runSemanticSkillPickup(projectCwd, matchedSkills) {
+    let intentCorpus = [];
+
+    // 1. Gather CLI intent parameter (--intent="xxx")
+    const cliIntent = getIntentFilter();
+    if (cliIntent) {
+        intentCorpus.push(cliIntent);
+    }
+
+    // 2. Gather project description from package.json
+    const pkgPath = path.join(projectCwd, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+        try {
+            const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+            if (pkg.description) intentCorpus.push(pkg.description);
+            if (pkg.keywords && Array.isArray(pkg.keywords)) intentCorpus.push(pkg.keywords.join(' '));
+        } catch (e) {}
+    }
+
+    // 3. Gather project README files
+    ['README.md', 'README_CN.md', 'readme.md'].forEach(readmeName => {
+        const readmePath = path.join(projectCwd, readmeName);
+        if (fs.existsSync(readmePath)) {
+            try {
+                const readmeText = fs.readFileSync(readmePath, 'utf8').slice(0, 1500);
+                intentCorpus.push(readmeText);
+            } catch (e) {}
+        }
+    });
+
+    if (intentCorpus.length === 0) return;
+
+    const fullCorpusText = intentCorpus.join(' ').toLowerCase();
+
+    // Read Fast Cold Vault Management Index (vault_registry.json)
+    const registryData = loadRegistry();
+    const registrySkills = registryData.skills || {};
+
+    if (!fs.existsSync(ARCHIVE_DIR)) return;
+
+    try {
+        const archivedSkills = fs.readdirSync(ARCHIVE_DIR);
+        archivedSkills.forEach(skillFolder => {
+            if (skillFolder === 'vault_registry.json' || matchedSkills.has(skillFolder)) return;
+
+            // Respect disabled status from management registry
+            const regEntry = registrySkills[skillFolder];
+            if (regEntry && regEntry.status === 'disabled') return;
+            
+            const skillMdPath = path.join(ARCHIVE_DIR, skillFolder, 'SKILL.md');
+            if (!fs.existsSync(skillMdPath)) return;
+
+            try {
+                // Query Fast Index metadata first
+                let skillDesc = regEntry && regEntry.description ? regEntry.description.toLowerCase() : '';
+                
+                if (!skillDesc) {
+                    const skillContent = fs.readFileSync(skillMdPath, 'utf8').toLowerCase();
+                    const descMatch = skillContent.match(/description:\s*"?(.*?)"?\n/i);
+                    skillDesc = descMatch ? descMatch[1].toLowerCase() : skillContent.slice(0, 500);
+                }
+
+                // Extract keywords from description
+                const keywords = skillDesc.split(/[\s,.:;()\-]+/);
+                let hitCount = 0;
+                let matchedWords = [];
+
+                keywords.forEach(kw => {
+                    if (kw.length >= 4 && !['this', 'that', 'with', 'from', 'when', 'your', 'about', 'uses', 'for', 'and'].includes(kw)) {
+                        if (fullCorpusText.includes(kw)) {
+                            hitCount++;
+                            if (!matchedWords.includes(kw)) matchedWords.push(kw);
+                        }
+                    }
+                });
+
+                // Check direct skill name match
+                const skillNameLower = skillFolder.toLowerCase();
+                if (fullCorpusText.includes(skillNameLower)) {
+                    hitCount += 4;
+                    matchedWords.push(skillNameLower);
+                }
+
+                if (hitCount >= 3) {
+                    matchedSkills.set(skillFolder, `语义匹配 (关键词: ${matchedWords.slice(0, 3).join(', ')})`);
+                }
+            } catch (e) {}
+        });
+    } catch (e) {}
 }
 
 // -------------------------------------------------------------------
@@ -476,6 +921,9 @@ function runInfer(projectCwd = process.cwd()) {
     }
     scanExtensions(projectCwd);
 
+    // Source Dynamic: Semantic Skill Pickup (分析 README / package.json description / --intent 语料)
+    runSemanticSkillPickup(projectCwd, matchedSkills);
+
     const maxSkillsLimit = resolveMaxSkillsLimit(projectCwd);
 
     if (matchedSkills.size === 0) {
@@ -537,11 +985,14 @@ function runStatus(projectCwd = process.cwd()) {
         }
     });
 
-    console.log(`全局热底座开销 : ~${globalTokens} Tokens [Status: Healthy 🟢]`);
+    console.log(`全局基础底座开销 : ~${globalTokens} Tokens [Status: Healthy 🟢]`);
     if (globalSkillsList.length === 0) {
         console.log('   └── (无常驻全局技能，开局 0 占用)');
     } else {
-        globalSkillsList.forEach(s => console.log(`   ├── ${s.name.padEnd(23)} : ${s.tokens} Tokens`));
+        globalSkillsList.forEach(s => {
+            const purpose = getSkillShortPurpose(s.name, path.join(s.path, s.name));
+            console.log(`   ├── ${s.name.padEnd(35)} : ${s.tokens.toString().padStart(5)} Tokens (${purpose})`);
+        });
     }
 
     // 2. Project Scope
@@ -564,11 +1015,27 @@ function runStatus(projectCwd = process.cwd()) {
                             const tokens = estimateTokens(content);
                             projectTokens += tokens;
 
-                            // Extract origin info
+                            // Extract and clean origin info
                             let originMatch = content.match(/<!-- @origin: (.*?) -->/);
-                            let originStr = originMatch ? originMatch[1] : '来源: 本地冷库';
+                            let rawOrigin = originMatch ? originMatch[1] : `本地冷库 | ${getSkillShortPurpose(item, fullPath)}`;
+                            
+                            let cleanOrigin = rawOrigin
+                                .replace(/来源:\s*/g, '')
+                                .replace(/推断:\s*/g, '')
+                                .replace(/关键词:\s*/g, '')
+                                .replace(/语义匹配\s*\(/g, '')
+                                .replace(/\)/g, '')
+                                .trim();
 
-                            projectSkillsList.push({ name: item, tokens, origin: originStr });
+                            const purpose = getSkillShortPurpose(item, fullPath);
+                            if (!cleanOrigin.includes('|')) {
+                                cleanOrigin = `${cleanOrigin} | ${purpose}`;
+                            } else {
+                                const sourcePart = cleanOrigin.split('|')[0].trim();
+                                cleanOrigin = `${sourcePart} | ${purpose}`;
+                            }
+
+                            projectSkillsList.push({ name: item, tokens, origin: cleanOrigin });
                         }
                     }
                 } catch (e) {}
@@ -576,12 +1043,22 @@ function runStatus(projectCwd = process.cwd()) {
         } catch (e) {}
     }
 
+    console.log('------------------------------------------------------------');
+    console.log(`本项目动态加载技能开销 : ~${projectTokens} Tokens [Project-Scoped]`);
+    if (projectSkillsList.length === 0) {
+        console.log('   └── (本项目未装载额外项目级技能)');
+    } else {
+        projectSkillsList.forEach(s => {
+            console.log(`   ├── ${s.name.padEnd(35)} : ${s.tokens.toString().padStart(5)} Tokens (${s.origin})`);
+        });
+    }
+
     const totalActive = globalTokens + projectTokens;
-    const savedPct = (((9757 - totalActive) / 9757) * 100).toFixed(1);
+    const savedPct = totalActive < 9757 ? (((9757 - totalActive) / 9757) * 100).toFixed(1) : 0;
 
     console.log('------------------------------------------------------------');
-    console.log(`本项目总底座开销 : ${totalActive} Tokens (较默认全载节省 ${savedPct}% 空间)`);
-    console.log(`Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)`);
+    console.log(`项目总活跃 Token 开销 : ~${totalActive} Tokens`);
+    console.log(`Prompt Cache 锚点    : 已自动注入 (响应速度提升 4x)`);
     console.log('============================================================\n');
 }
 
@@ -590,6 +1067,8 @@ function runStatus(projectCwd = process.cwd()) {
 // -------------------------------------------------------------------
 function runInit() {
     console.log('🚀 Dynamically Scanning System & Consolidating Skills into Unified Shared Vault...');
+    console.log('🤖 AI Semantic Skill Analyzer: Evaluating skills for universal meta-skill traits...');
+    ensureFindSkillsInstalled();
     ensureDir(ARCHIVE_DIR);
     let totalConsolidated = 0;
 
@@ -613,20 +1092,31 @@ function runInit() {
                             return;
                         }
 
-                        if (lstat.isDirectory() && !CORE_SKILLS.includes(item)) {
-                            const targetPath = path.join(ARCHIVE_DIR, item);
+                        if (lstat.isDirectory()) {
+                            // Perform Semantic Analysis
+                            const isBaseSkill = BASE_SKILLS.includes(item) || analyzeSkillSemantics(fullPath, item);
                             
-                            // Record original source path into vault_registry.json for 100% exact restoration on eject
-                            recordSkillOrigin(item, fullPath);
+                            if (isBaseSkill && !BASE_SKILLS.includes(item)) {
+                                addSkillToBaseConfig(item);
+                            }
 
-                            if (!fs.existsSync(targetPath)) {
-                                if (safeCopy(fullPath, targetPath)) {
+                            if (!isBaseSkill) {
+                                const targetPath = path.join(ARCHIVE_DIR, item);
+                                
+                                // Record original source path into vault_registry.json for 100% exact restoration on eject
+                                recordSkillOrigin(item, fullPath);
+
+                                if (!fs.existsSync(targetPath)) {
+                                    if (safeCopy(fullPath, targetPath)) {
+                                        safeRemove(fullPath);
+                                        totalConsolidated++;
+                                        console.log(`📦 Consolidated [${item}] -> Vault (Origin recorded: ${fullPath})`);
+                                    }
+                                } else {
                                     safeRemove(fullPath);
-                                    totalConsolidated++;
-                                    console.log(`📦 Consolidated [${item}] -> Vault (Origin recorded: ${fullPath})`);
                                 }
                             } else {
-                                safeRemove(fullPath);
+                                console.log(`🛡️ Preserved Universal Base Skill [${item}] in Base: ${fullPath}`);
                             }
                         }
                     } catch (e) {}
@@ -635,14 +1125,17 @@ function runInit() {
         } catch (e) {}
     });
 
-    console.log(`\n✅ Consolidated ${totalConsolidated} skills into Unified Shared Vault: ${ARCHIVE_DIR}`);
-    console.log(`📝 Dynamic origin mapping saved to: ${REGISTRY_FILE}`);
+    rebuildVaultRegistryIndex();
+    generateOrSyncSkillsManagerMd();
+    console.log(`\n✅ Consolidated ${totalConsolidated} domain skills into Unified Shared Vault: ${ARCHIVE_DIR}`);
+    console.log(`📝 Dynamic origin & metadata index saved to: ${REGISTRY_FILE}`);
 }
 
 function runSync() {
     const ideFilter = getIdeFilter();
     const filterMsg = ideFilter ? ` [Target IDE Filter: ${ideFilter}]` : '';
     console.log(`🔄 Dynamically checking for newly added or updated skills${filterMsg}...`);
+    ensureFindSkillsInstalled();
     ensureDir(ARCHIVE_DIR);
     let totalSynced = 0;
 
@@ -662,17 +1155,25 @@ function runSync() {
                             return;
                         }
 
-                        if (lstat.isDirectory() && !CORE_SKILLS.includes(item)) {
-                            const targetPath = path.join(ARCHIVE_DIR, item);
-                            
-                            recordSkillOrigin(item, fullPath);
+                        if (lstat.isDirectory()) {
+                            const isBaseSkill = BASE_SKILLS.includes(item) || analyzeSkillSemantics(fullPath, item);
 
-                            // Always update Cold Archive Vault with latest version from IDE
-                            safeRemove(targetPath);
-                            if (safeCopy(fullPath, targetPath)) {
-                                safeRemove(fullPath);
-                                totalSynced++;
-                                console.log(`📦 Auto-synced & updated [${item}] -> Vault (Origin recorded: ${fullPath})`);
+                            if (isBaseSkill && !BASE_SKILLS.includes(item)) {
+                                addSkillToBaseConfig(item);
+                            }
+
+                            if (!isBaseSkill) {
+                                const targetPath = path.join(ARCHIVE_DIR, item);
+                                
+                                recordSkillOrigin(item, fullPath);
+
+                                // Always update Cold Archive Vault with latest version from IDE
+                                safeRemove(targetPath);
+                                if (safeCopy(fullPath, targetPath)) {
+                                    safeRemove(fullPath);
+                                    totalSynced++;
+                                    console.log(`📦 Auto-synced & updated [${item}] -> Vault (Origin recorded: ${fullPath})`);
+                                }
                             }
                         }
                     } catch (e) {}
@@ -727,34 +1228,34 @@ function runMerge() {
 
             paths.forEach(p => {
                 if (path.normalize(p) !== path.normalize(targetVaultPath)) {
-                    // Protect CORE_SKILLS in primary IDE from being removed (keep in Hot Base)
-                    const isCoreInPrimary = CORE_SKILLS.includes(skillName) && (p.toLowerCase().includes('.gemini') || p.toLowerCase().includes('.agents'));
-                    if (!isCoreInPrimary) {
+                    // Protect BASE_SKILLS in primary IDE from being removed (keep in Base)
+                    const isBaseInPrimary = BASE_SKILLS.includes(skillName) && (p.toLowerCase().includes('.gemini') || p.toLowerCase().includes('.agents'));
+                    if (!isBaseInPrimary) {
                         safeRemove(p);
                         mergedCount++;
                         console.log(`🧹 Deduplicated & Merged [${skillName}] from ${p}`);
                     } else {
-                        console.log(`🛡️ Preserved Core Hot Skill [${skillName}] at Hot Base: ${p}`);
+                        console.log(`🛡️ Preserved Core Base Skill [${skillName}] at Base: ${p}`);
                     }
                 }
             });
         }
     });
 
-    // Ensure CORE_SKILLS are always preserved in primary IDE hot base
+    // Ensure BASE_SKILLS are always preserved in primary IDE base
     const primaryHotDir = path.join(HOME_DIR, '.gemini', 'config', 'skills');
     ensureDir(primaryHotDir);
-    CORE_SKILLS.forEach(coreItem => {
+    BASE_SKILLS.forEach(coreItem => {
         const vaultCorePath = path.join(ARCHIVE_DIR, coreItem);
         const hotCorePath = path.join(primaryHotDir, coreItem);
         if (fs.existsSync(vaultCorePath) && !fs.existsSync(hotCorePath)) {
             safeCopy(vaultCorePath, hotCorePath);
-            console.log(`🛡️ Restored Core Hot Skill [${coreItem}] -> Hot Base (${primaryHotDir})`);
+            console.log(`🛡️ Restored Core Base Skill [${coreItem}] -> Base (${primaryHotDir})`);
         }
     });
 
     console.log(`\n✅ Merge complete! Deduplicated & merged ${mergedCount} redundant skill copies.`);
-    console.log(`💡 Hot base overhead reduced. Run 'status' to check updated telemetry report.`);
+    console.log(`💡 Base skills overhead reduced. Run 'status' to check updated telemetry report.`);
 }
 
 function runCleanup(projectCwd = process.cwd()) {
@@ -833,8 +1334,29 @@ function runEject() {
     console.log('System is now restored to standard default mode (0 data lost).');
 }
 
+// Ensure find-skills is installed in global base skills directory for open ecosystem discovery
+function ensureFindSkillsInstalled() {
+    const geminiSkillsDir = path.join(HOME_DIR, '.gemini', 'config', 'skills');
+    const findSkillsDir = path.join(geminiSkillsDir, 'find-skills');
+    const archiveFindSkillsDir = path.join(ARCHIVE_DIR, 'find-skills');
+
+    if (!fs.existsSync(findSkillsDir) && !fs.existsSync(archiveFindSkillsDir)) {
+        console.log('🔍 [Auto-Install] find-skills not detected. Auto-installing find-skills from open ecosystem...');
+        try {
+            ensureDir(geminiSkillsDir);
+            execSync(`npx -y skills add find-skills -g`, { stdio: 'ignore', timeout: 8000 });
+            console.log('✅ Auto-installed find-skills into global base skills.');
+        } catch (e) {
+            console.warn('⚠️ Auto-installation of find-skills timed out, generating local fallback...');
+            ensureDir(findSkillsDir);
+            const fallbackMd = `<!-- @cache-control: ephemeral -->\n---\nname: find-skills\ndescription: "Find and install skills from the open agent skills ecosystem. Helps discover new capabilities and tools."\n---\n# Find Skills\n\nSearch open ecosystem skills using: npx skills find [query]\n`;
+            fs.writeFileSync(path.join(findSkillsDir, 'SKILL.md'), fallbackMd, 'utf-8');
+        }
+    }
+}
+
 // -------------------------------------------------------------------
-// CLI Router
+// Module 4: CLI Commands Execution
 // -------------------------------------------------------------------
 const command = process.argv[2];
 

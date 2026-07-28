@@ -1,4 +1,4 @@
-# Skill Orchestrator
+# Skill Orchestrator (v3.8.0)
 
 > 面向 AI Coding Agent 的多源技能动态推断、按需装载与 0 开局 Token 调度引擎。
 
@@ -8,17 +8,15 @@
 
 ## 🔥 核心痛点与功能特点 (Pain Points & Core Capabilities)
 
-在传统模式下，所有的 AI Agent 技能（Skills）都会在开局对话中被一次性预加载，导致极其严重的上下文浪费与私有资产碎片化。`skill-orchestrator` 通过建立全平台统一共享冷库与代码级动态推断，彻底解决了这一问题：
+在传统模式下，所有的 AI Agent 技能（Skills）都会在开局对话中被一次性预加载，导致极其严重的上下文浪费与私有资产碎片化。`skill-orchestrator` 通过建立全平台统一共享冷库与代码级动态推导，彻底解决了这一问题：
 
-| 痛点问题 (Pain Point) | 传统模式 (All Preloaded) | 本策略架构 (Skill Orchestrator) | 核心功能特点 (Key Capability) |
+| 痛点问题 (Pain Point) | 传统模式 (All Preloaded) | 本策略架构 (Skill Orchestrator v3.8.0) | 核心功能特点 (Key Capability) |
 | :--- | :--- | :--- | :--- |
 | **开局 Token 占用** | ~9,757 Tokens (占用近 50% 预算槽) | **~0 - 500 Tokens** (降低 95%+) | **0 开局底座空间释放**：极简热底座与本地私有冷库隔离 |
+| **双轨人机操控面板** | 配置文件零碎分散且不易直观查看 | **`so_skills_registry` 孪生双轨** | **双轨对称系统**：Markdown 可视化控制面板与 JSON 引擎 |
 | **私有技能碎片化** | 各 Agent / IDE 目录独立分散、重复拷贝 | **全平台统一共享冷库** (`~/.agents/skills_archive/`) | **全平台统一资产库**：在 Antigravity/Trae/Claude 全端 0ms 共享 |
 | **技能调度与收拢** | 全局污染，项目间乱拉乱装 | **分优先级按需调度装载** (项目 > 共享冷库 > 云端) | **项目局部精准收拢**：所有项目技能精准收拢在 `./.agents/skills/` |
-| **技能推断维度** | 依赖人类口语描述与 LLM 语义猜测 | **代码层 5 维自动推断** (扫 `package.json`/后缀/意图) | **零沟通代码依赖推断**：自动扫配置文件与 `.glsl`/`.swift` 等后缀 |
-| **云端源覆盖度** | 单一依赖 Vercel 注册表 | **全网多云端源级联支持** (Vercel, Upskill, Orgs, CDN) | **全网注册表级联**：支持 Vercel / Upskill / GitHub / 国内 CDN |
-| **响应速度与费用** | 每轮对话重复计算 10k Token 提示词 | **Prompt Cache 缓存锚点** (闪电提速 4x，费用降 90%) | **Prompt Cache 缓存注入**：自动注入 `<!-- @cache-control -->` 锚点 |
-| **可观察性与监控** | 无法感知技能占用的具体 Token 权重 | **Token Telemetry 诊断仪表盘** (健康度柱状卡片) | **透明 Token 汇报卡**：随时使用 `/status` 查看健康卡片与来源追溯 |
+| **快捷指令与别名** | 依赖记冗长 CLI 命令或手动拷贝 | **`so` 与 `so-xxx` 快捷别名指令** | **极简交互**：`so-status`, `so-infer`, `so-sync`, `so-cleanup` |
 
 ---
 
@@ -34,38 +32,35 @@ npx skills add skill-orchestrator
 npx skills add amasun/skill-orchestrator
 ```
 
-### 命令行工具操作（开发者备用）
+### 快捷指令与快捷别名 (`so` & `so-xxx`)
 ```bash
-# 1. 多源依赖自动推断 (自动读取配置文件/代码后缀零沟通匹配技能)
-npx skill-orchestrator infer   # 或 skill-orchestrator infer
+# 1. 查阅 Token 诊断与双轨注册表状态卡片
+so-status  # 或 npx skill-orchestrator status
 
-# 2. 自动巡检检测用户手动 npx 安装的新技能并移入共享冷库
-npx skill-orchestrator sync    # 或 skill-orchestrator sync
+# 2. 多源依赖自动推断 (零沟通匹配代码与技能)
+so-infer   # 或 npx skill-orchestrator infer
 
-# 3. 技能合并与去重引擎 (清理多 IDE 重复技能副本，将开局 Token 压降到 0)
-npx skill-orchestrator merge   # 或 skill-orchestrator merge
+# 3. 自动同步冷库、生成领域分类 Markdown 面板与 JSON 数据库
+so-sync    # 或 npx skill-orchestrator sync
 
-# 4. Token 预算诊断仪表盘 / 汇报卡手动唤醒 (查看精确 Token 占用与健康度)
-npx skill-orchestrator status  # 或 skill-orchestrator status
+# 4. 技能合并与去重引擎 (清理重复技能，归降开局 Token)
+so-merge   # 或 npx skill-orchestrator merge
 
-# 4. 项目结项一键清理
-npx skill-orchestrator cleanup # 或 skill-orchestrator cleanup
+# 5. 项目结项一键清理 (退回 0-Token 共享冷库)
+so-cleanup # 或 npx skill-orchestrator cleanup
 
-# 5. 退出机制 (还原所有归档技能至全局目录并彻底卸载，0 数据丢失)
-npx skill-orchestrator eject   # 或 skill-orchestrator eject
-
-# 6. 定向针对单一 IDE 归档技能 (不影响其他 IDE，如仅针对 gemini / claude / cursor)
-npx skill-orchestrator sync --ide=gemini   # 或 --ide=claude, --ide=cursor
+# 6. 退出机制 (彻底还原所有技能并卸载，数据 0 丢失)
+so-eject   # 或 npx skill-orchestrator eject
 ```
 
-### ⚙️ 用户自定义热底座配置 (`~/.agents/hot_skills.json`)
+### ⚙️ 用户自定义底层基础技能配置 (`~/.agents/base_skills.json`)
 
-系统会在 `~/.agents/hot_skills.json` 自动生成热底座白名单配置文件。你可以随时在此文件中填入任何你认为必须常驻在热底座里的技能名称，系统在执行 `sync` / `merge` / `init` 时 **100% 保证它们绝对不会被意外移入冷库**：
+系统会在 `~/.agents/base_skills.json` 自动生成基础技能白名单配置文件，并通过 AI 语义分析引擎（Semantic Skill Analyzer）自动对 `SKILL.md` 进行检测。如果是通用元技能（Workflow/Refactoring/Debug 等），会自动添加并保留在基础底座中，**100% 保证它们绝对不会被意外移入冷库**：
 
 ```json
 {
-  "version": "1.0.0",
-  "core_hot_skills": [
+  "version": "1.1.0",
+  "core_base_skills": [
     "z-coding-refactoring",
     "agentic-workflow",
     "find-skills",

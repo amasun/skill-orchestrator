@@ -1,7 +1,7 @@
 {
   "name": "skill-orchestrator",
-  "version": "3.7.0",
-  "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization (v3.3.2 Double-Bilingual Docs & Node.js Self-Healing Edition)",
+  "version": "3.8.0",
+  "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization (v3.8.0 Twin Registry & Domain Routing Edition)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/amasun/skill-orchestrator.git"

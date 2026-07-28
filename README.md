@@ -31,39 +31,49 @@ npx skills add skill-orchestrator
 
 ### 2. Install via GitHub Repository
 ```bash
-npx skills add amasun/skill-orchestrator
+## 🔥 Key Features (v3.8.0)
+
+- **Zero-Token Cold Archive**: Store 66+ skills in shared cold vault (`~/.agents/skills_archive/`) at **0 Token Overhead**.
+- **Twin Registry Architecture (`so_skills_registry`)**:
+  - `so_skills_registry.md`: Human UI Markdown Panel with domain categories & checkmarks.
+  - `so_skills_registry.json`: Machine Engine Index (v2.1.0 Homogeneous Model).
+- **Short Aliases & Quick Directives**:
+  - Use `so-status`, `so-infer`, `so-sync`, `so-cleanup`, `so-eject`, `so-merge` for instant execution.
+- **Direct Name Mention Auto-Activation**:
+  - Zero-friction name matching (e.g., `"use apple-design"`) automatically hot-loads cold skills into project `.agents/skills/`.
+
+---
+
+## 🚀 Usage (`so` & `so-xxx`)
+
+```bash
+# Check skill status & token telemetry
+so-status  # or npx skill-orchestrator status
+
+# Infer project skill dependencies
+so-infer   # or npx skill-orchestrator infer
+
+# Synchronize Markdown panel & JSON database
+so-sync    # or npx skill-orchestrator sync
+
+# Merge & deduplicate cold vault skills
+so-merge   # or npx skill-orchestrator merge
+
+# Clean project skills back to cold vault
+so-cleanup # or npx skill-orchestrator cleanup
+
+# Eject orchestrator from project
+so-eject   # or npx skill-orchestrator eject
 ```
 
-### CLI Commands (For Developers & Automation)
-```bash
-# 1. Multi-Source Dependency Auto-Inference (Scans configs, file extensions & package.json)
-npx skill-orchestrator infer   # or skill-orchestrator infer
+### ⚙️ User-Customized Base Skills Whitelist (`~/.agents/base_skills.json`)
 
-# 2. Auto-Sync scanner: Migrates manually installed npx skills to shared cold vault
-npx skill-orchestrator sync    # or skill-orchestrator sync
-
-# 3. Skill Merge & Deduplication Engine (Consolidates multi-IDE duplicates to 0 base tokens)
-npx skill-orchestrator merge   # or skill-orchestrator merge
-
-# 3. Token Budget Diagnostic Dashboard / Telemetry Report
-npx skill-orchestrator status  # or skill-orchestrator status
-
-# 4. Project Milestone Cleanup (Wipes project-level temporary skills)
-npx skill-orchestrator cleanup # or skill-orchestrator cleanup
-
-# 5. Smart Offboarding Eject (Restores skills to original IDE paths & uninstalls safely)
-npx skill-orchestrator eject   # or skill-orchestrator eject
-
-# 6. Targeted Single-IDE Skill Sync (Isolates specific IDE like gemini / claude / cursor)
-npx skill-orchestrator sync --ide=gemini   # or --ide=claude, --ide=cursor
-```### ⚙️ User-Customized Hot Base Whitelist (`~/.agents/hot_skills.json`)
-
-The orchestrator automatically manages a whitelist configuration at `~/.agents/hot_skills.json`. You can edit `core_hot_skills` at any time to preserve custom essential skills permanently in your primary IDE hot base:
+The orchestrator automatically manages a whitelist configuration at `~/.agents/base_skills.json` and evaluates skills using an AI Semantic Skill Analyzer. Universal meta-skills (Workflow/Refactoring/Debug) are automatically preserved in your primary IDE base:
 
 ```json
 {
-  "version": "1.0.0",
-  "core_hot_skills": [
+  "version": "1.1.0",
+  "core_base_skills": [
     "z-coding-refactoring",
     "agentic-workflow",
     "find-skills",
