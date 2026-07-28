@@ -632,6 +632,62 @@ function runSync() {
     console.log(`\n✅ Sync complete. Migrated/Updated ${totalSynced} skills to Unified Shared Vault: ${ARCHIVE_DIR}`);
 }
 
+function runMerge() {
+    console.log('⚡ Executing Skill Merge & Deduplication Engine...');
+    ensureDir(ARCHIVE_DIR);
+    let mergedCount = 0;
+
+    const allDiscoveredPaths = discoverAllSkillPaths();
+    const seenSkills = new Map();
+
+    allDiscoveredPaths.forEach(agentPath => {
+        try {
+            if (fs.existsSync(agentPath)) {
+                const items = fs.readdirSync(agentPath);
+                items.forEach(item => {
+                    if (item.startsWith('.')) return;
+                    const fullPath = path.join(agentPath, item);
+                    try {
+                        const lstat = fs.lstatSync(fullPath);
+                        if (lstat.isDirectory() && !lstat.isSymbolicLink()) {
+                            if (!seenSkills.has(item)) {
+                                seenSkills.set(item, []);
+                            }
+                            seenSkills.get(item).push(fullPath);
+                        }
+                    } catch (e) {}
+                });
+            }
+        } catch (e) {}
+    });
+
+    seenSkills.forEach((paths, skillName) => {
+        if (paths.length > 1) {
+            console.log(`🔍 Found duplicate Skill [${skillName}] across ${paths.length} locations:`);
+            paths.forEach(p => console.log(`   ├── ${p}`));
+            
+            const targetVaultPath = path.join(ARCHIVE_DIR, skillName);
+            paths.forEach(p => recordSkillOrigin(skillName, p));
+
+            if (!fs.existsSync(targetVaultPath)) {
+                safeCopy(paths[0], targetVaultPath);
+            }
+
+            paths.forEach(p => {
+                if (path.normalize(p) !== path.normalize(targetVaultPath)) {
+                    // Deduplicate redundant copies
+                    safeRemove(p);
+                    mergedCount++;
+                    console.log(`🧹 Deduplicated & Merged [${skillName}] from ${p}`);
+                }
+            });
+        }
+    });
+
+    console.log(`\n✅ Merge complete! Deduplicated & merged ${mergedCount} redundant skill copies.`);
+    console.log(`💡 Hot base overhead reduced. Run 'status' to check updated telemetry report.`);
+}
+
 function runCleanup(projectCwd = process.cwd()) {
     console.log('🧹 Cleaning up project-level skills...');
     const projectSkillsDir = path.join(projectCwd, '.agents', 'skills');
@@ -722,6 +778,9 @@ switch (command) {
         break;
     case 'sync':
         runSync();
+        break;
+    case 'merge':
+        runMerge();
         break;
     case 'status':
         runStatus();

@@ -42,7 +42,10 @@ npx skill-orchestrator infer   # 或 skill-orchestrator infer
 # 2. 自动巡检检测用户手动 npx 安装的新技能并移入共享冷库
 npx skill-orchestrator sync    # 或 skill-orchestrator sync
 
-# 3. Token 预算诊断仪表盘 / 汇报卡手动唤醒 (查看精确 Token 占用与健康度)
+# 3. 技能合并与去重引擎 (清理多 IDE 重复技能副本，将开局 Token 压降到 0)
+npx skill-orchestrator merge   # 或 skill-orchestrator merge
+
+# 4. Token 预算诊断仪表盘 / 汇报卡手动唤醒 (查看精确 Token 占用与健康度)
 npx skill-orchestrator status  # 或 skill-orchestrator status
 
 # 4. 项目结项一键清理
@@ -65,6 +68,7 @@ npx skill-orchestrator sync --ide=gemini   # 或 --ide=claude, --ide=cursor
 | **`/init`** | `$init` / `init` | **“初始化技能库”、“清空开局占用”** | `npx skill-orchestrator init` |
 | **`/infer`** | `$infer` / `infer` | **“检查依赖”、“自动匹配技能”** | `npx skill-orchestrator infer` |
 | **`/sync`** | `$sync` / `sync` | **“刚才 npx 装了新技能，整理一下”** | `npx skill-orchestrator sync` |
+| **`/merge`** | `$merge` / `merge` | **“合并重复技能”、“技能去重”、“压缩开局占用”** | `npx skill-orchestrator merge` |
 | **`/sync --ide=gemini`** | `sync gemini` | **“只归档/整理 Gemini 的技能”** | `npx skill-orchestrator sync --ide=gemini` |
 | **`/sync --ide=claude`** | `sync claude` | **“把 Claude 的技能移入冷库”** | `npx skill-orchestrator sync --ide=claude` |
 | **`/sync --ide=cursor`** | `sync cursor` | **“只整理 Cursor 的技能”** | `npx skill-orchestrator sync --ide=cursor` |

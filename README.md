@@ -42,6 +42,9 @@ npx skill-orchestrator infer   # or skill-orchestrator infer
 # 2. Auto-Sync scanner: Migrates manually installed npx skills to shared cold vault
 npx skill-orchestrator sync    # or skill-orchestrator sync
 
+# 3. Skill Merge & Deduplication Engine (Consolidates multi-IDE duplicates to 0 base tokens)
+npx skill-orchestrator merge   # or skill-orchestrator merge
+
 # 3. Token Budget Diagnostic Dashboard / Telemetry Report
 npx skill-orchestrator status  # or skill-orchestrator status
 
@@ -65,6 +68,7 @@ In any AI Agent chat session, use slash commands or natural language triggers wi
 | **`/init`** | `$init` / `init` | **"Initialize Skill Vault", "Consolidate skills"** | `npx skill-orchestrator init` |
 | **`/infer`** | `$infer` / `infer` | **"Check dependencies", "Auto-match skills"** | `npx skill-orchestrator infer` |
 | **`/sync`** | `$sync` / `sync` | **"Sync manual npx skills", "Update vault"** | `npx skill-orchestrator sync` |
+| **`/merge`** | `$merge` / `merge` | **"Merge duplicate skills", "Deduplicate skills"** | `npx skill-orchestrator merge` |
 | **`/sync --ide=gemini`** | `sync gemini` | **"Only sync Gemini skills"** | `npx skill-orchestrator sync --ide=gemini` |
 | **`/sync --ide=claude`** | `sync claude` | **"Only sync Claude skills"** | `npx skill-orchestrator sync --ide=claude` |
 | **`/sync --ide=cursor`** | `sync cursor` | **"Only sync Cursor skills"** | `npx skill-orchestrator sync --ide=cursor` |

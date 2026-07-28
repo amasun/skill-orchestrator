@@ -19,6 +19,7 @@ AI Agent execution rules for dynamic skill orchestration and zero-base-token opt
 | `/init`, `$init`, "Initialize Skill Vault", "初始化技能库" | `npx skill-orchestrator init` |
 | `/infer`, `$infer`, "Auto Match Skills/Infer Dependencies", "自动匹配技能" | `npx skill-orchestrator infer` |
 | `/sync`, `$sync`, "Sync New Skills/Organize Cold Archive", "同步所有技能" | `npx skill-orchestrator sync` |
+| `/merge`, `$merge`, "Merge Duplicate Skills", "合并技能/去重" | `npx skill-orchestrator merge` |
 | **"只同步/归档 Gemini/Antigravity 的技能"** | `npx skill-orchestrator sync --ide=gemini` |
 | **"把 Claude 的技能移入冷库"** | `npx skill-orchestrator sync --ide=claude` |
 | **"只整理 Cursor 的技能"** | `npx skill-orchestrator sync --ide=cursor` |
