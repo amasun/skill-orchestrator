@@ -6,9 +6,21 @@ description: >
   throughout the project lifecycle (Init -> Requirements Alignment -> Single-Directional Addition -> Final Cleanup).
 ---
 
-# Skill Orchestrator Engine (v2.0)
+# Skill Orchestrator Engine (v2.2)
 
 An open, cross-platform Agent Skill that provides automated zero-base-token skill orchestration for AI Coding Assistants (Antigravity, Claude Code, Cursor, Trae, Codex).
+
+---
+
+## 🌐 5 大云端/本地注册表级联引擎 (5-Registry Universal Resolution Engine)
+
+| 注册表来源 | 维护主体 | 核心差异化领域 | 自动匹配/拉取逻辑 |
+| :--- | :--- | :--- | :--- |
+| **1. Vercel (`vercel-labs`)** | Vercel & 开源社区 | Web 前端、Next.js、UI/UX 规范 | `npx skills add <name>` |
+| **2. Upskill (`upskill.dev`)** | 安全团队 | 恶意代码防御、安全审计、合规重构 | `npx upskill add <name>` |
+| **3. 巨头官方 (`Stripe/Cloudflare`)**| 各大 Tech 巨头 | 官方 API、Serverless 边缘计算、数据库 | `npx skills add owner/repo` |
+| **4. 国内 Gitee / CDN 节点** | Gitee / jsDelivr | 国内秒级响应 (Ping < 30ms) | `npx skills add vercel-labs/skills/<name>` |
+| **5. 您的私有 GitHub 组织** | 您的团队 | 团队内部私有架构、商业护城河规范 | `npx skills add your-org/repo` |
 
 ---
 
@@ -73,7 +85,7 @@ When this skill is active, the AI Agent adheres to the following lifecycle workf
 2. **Requirements Alignment Phase**:
    - 0 extra skills loaded in the project directory. Rapid, lightweight product requirement discussion.
 3. **Dependency & Requirements Finalization Phase (`infer` & `fetch`)**:
-   - AI automatically inspects project dependencies, file extensions, and chat intent to match cold archive (or Vercel cloud registry).
+   - AI automatically inspects project dependencies, file extensions, and chat intent to match cold archive or 5 Cloud Registries (Vercel, Upskill, GitHub Orgs, Gitee/jsDelivr, Private Orgs).
    - Copies matching 2-3 skills into `./.agents/skills/`.
    - **Outputs Proactive Telemetry Report Card with concise origin tags**.
 4. **Development Execution Phase (`Incremental Addition`)**:

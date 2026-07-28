@@ -16,10 +16,10 @@ const AGENT_SKILL_PATHS = [
 const CORE_SKILLS = ['z-coding-refactoring', 'agentic-workflow', 'skill-orchestrator', 'find-skills'];
 
 // -------------------------------------------------------------------
-// 3-Source Cascade Resolution Registry (3大来源无缝接入机制)
+// Multi-Registry & Dependency Mapping (多云端注册表与依赖规则)
 // -------------------------------------------------------------------
 const DEPENDENCY_MAP = {
-    // Node.js / Web Frontend Dependencies
+    // Node.js / Web Frontend Dependencies (Vercel Registry)
     'three': { skill: '3d-web-experience', reason: 'package.json' },
     '@react-three/fiber': { skill: '3d-web-experience', reason: 'package.json' },
     'three-stdlib': { skill: '3d-web-experience', reason: 'package.json' },
@@ -35,7 +35,11 @@ const DEPENDENCY_MAP = {
     'torch': { skill: 'ml-best-practices', reason: 'requirements.txt' },
     'tensorflow': { skill: 'ml-best-practices', reason: 'requirements.txt' },
     'pandas': { skill: 'notebook-guidance', reason: 'requirements.txt' },
-    'fastapi': { skill: 'building-data-apps', reason: 'requirements.txt' }
+    'fastapi': { skill: 'building-data-apps', reason: 'requirements.txt' },
+
+    // Security & Compliance (Upskill Registry)
+    'helmet': { skill: 'upskill/security-headers', reason: 'security-audit' },
+    'jsonwebtoken': { skill: 'upskill/auth-security', reason: 'security-audit' }
 };
 
 const FILE_EXTENSION_MAP = {
@@ -69,55 +73,77 @@ function injectCacheControl(skillDir, originInfo = '来源: 本地冷库') {
 }
 
 // -------------------------------------------------------------------
-// Module 3: 3-Source Cascade Resolution Engine (三大来源无缝接入)
+// Module 3: 5-Registry Universal Resolution Engine (支持 5 大云端源)
 // -------------------------------------------------------------------
 function fetchSkillWithCircuitBreaker(skillName, inferReason = 'package.json', projectCwd = process.cwd()) {
-    const localArchivePath = path.join(ARCHIVE_DIR, skillName);
+    const sanitizeName = skillName.includes('/') ? skillName.split('/').pop() : skillName;
+    const localArchivePath = path.join(ARCHIVE_DIR, sanitizeName);
     const projectSkillsDir = path.join(projectCwd, '.agents', 'skills');
     ensureDir(projectSkillsDir);
-    const projectTargetPath = path.join(projectSkillsDir, skillName);
+    const projectTargetPath = path.join(projectSkillsDir, sanitizeName);
 
     // Short-Circuit Check: Already exists in project directory
     if (fs.existsSync(projectTargetPath)) {
-        console.log(`ℹ️ Skill [${skillName}] already loaded in project scope.`);
+        console.log(`ℹ️ Skill [${sanitizeName}] already loaded in project scope.`);
         return { success: true, origin: '已在当前项目加载', reason: inferReason };
     }
 
-    // Source 1: Local Private Vault (skills_archive/) -> Priority 1 (0ms latency, zero leak)
+    // Source 1: Local Private Vault (skills_archive/) -> Priority 1 (0ms latency)
     if (fs.existsSync(localArchivePath)) {
-        console.log(`🎯 Hit Source 1 [本地私有冷库]: Copying [${skillName}] -> Project .agents/skills/`);
+        console.log(`🎯 Hit Source 1 [本地私有冷库]: Copying [${sanitizeName}] -> Project .agents/skills/`);
         fs.cpSync(localArchivePath, projectTargetPath, { recursive: true });
         injectCacheControl(projectTargetPath, `来源: 本地冷库 | 推断: ${inferReason}`);
         return { success: true, origin: '来源: 本地冷库', reason: inferReason };
     }
 
-    // Source 2: Domestic Fast CDN / Gitee Mirror -> Priority 2 (Ping <30ms)
+    // Source 2: Upskill Registry (upskill.dev) for Security/Audit Skills
+    if (skillName.startsWith('upskill/')) {
+        console.log(`🛡️ Hit Source 2 [Upskill安全云库]: Pulling [${skillName}]...`);
+        try {
+            execSync(`npx -y upskill add ${skillName.replace('upskill/', '')}`, { cwd: projectCwd, stdio: 'pipe', timeout: 5000 });
+            if (fs.existsSync(projectTargetPath)) {
+                injectCacheControl(projectTargetPath, `来源: Upskill安全库 | 推断: ${inferReason}`);
+                return { success: true, origin: '来源: Upskill安全库', reason: inferReason };
+            }
+        } catch (e) {}
+    }
+
+    // Source 3: GitHub Organization / Custom Repo (owner/repo or your-org/repo)
+    if (skillName.includes('/')) {
+        console.log(`🌐 Hit Source 3 [GitHub组织/私有仓库]: Pulling [${skillName}]...`);
+        try {
+            execSync(`npx -y skills add ${skillName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 5000 });
+            if (fs.existsSync(projectTargetPath)) {
+                injectCacheControl(projectTargetPath, `来源: GitHub组织(${skillName}) | 推断: ${inferReason}`);
+                return { success: true, origin: `来源: GitHub组织(${skillName})`, reason: inferReason };
+            }
+        } catch (e) {}
+    }
+
+    // Source 4: Domestic Fast CDN / Gitee Mirror Node (jsDelivr / Gitee)
     try {
-        console.log(`⚡ Hit Source 2 [国内 Gitee/CDN 极速节点]: Pulling [${skillName}]...`);
-        execSync(`npx -y skills add vercel-labs/skills/${skillName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 3000 });
+        console.log(`⚡ Hit Source 4 [Gitee/CDN极速节点]: Pulling [${sanitizeName}]...`);
+        execSync(`npx -y skills add vercel-labs/skills/${sanitizeName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 3000 });
         if (fs.existsSync(projectTargetPath)) {
             injectCacheControl(projectTargetPath, `来源: Gitee/CDN镜像 | 推断: ${inferReason}`);
-            console.log(`✅ Successfully pulled [${skillName}] via CDN Mirror into project!`);
             return { success: true, origin: '来源: Gitee/CDN镜像', reason: inferReason };
         }
     } catch (e) {}
 
-    // Source 3: Vercel Cloud Registry (vercel-labs/skills) / Chops -> Priority 3 (with 5s Circuit Breaker)
-    console.log(`☁️ Hit Source 3 [Vercel云端/Chops]: Pulling temporary project skill [${skillName}]...`);
+    // Source 5: Vercel Cloud Registry (vercel-labs/skills) / AWS Agent Fallback
+    console.log(`☁️ Hit Source 5 [Vercel云端/AWS Marketplace]: Pulling [${sanitizeName}]...`);
     try {
-        execSync(`npx -y skills add ${skillName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 5000 });
+        execSync(`npx -y skills add ${sanitizeName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 5000 });
         if (fs.existsSync(projectTargetPath)) {
             injectCacheControl(projectTargetPath, `来源: Vercel云端 | 仅存项目临时目录 | 推断: ${inferReason}`);
         }
-        console.log(`✅ Successfully pulled [${skillName}] into project scope!`);
         return { success: true, origin: '来源: Vercel云端 | 仅存项目临时目录', reason: inferReason };
     } catch (err) {
         // Fallback: Local Micro-Template Engine
-        console.warn(`🛡️ Circuit Breaker Triggered (Network Failure). Falling back to Local Micro-Template for [${skillName}]...`);
+        console.warn(`🛡️ Circuit Breaker Triggered (Network Failure). Falling back to Local Micro-Template for [${sanitizeName}]...`);
         ensureDir(projectTargetPath);
-        const fallbackMd = `<!-- @cache-control: ephemeral -->\n<!-- @origin: 来源: 本地微模板降级 -->\n---\nname: ${skillName}\ndescription: Fallback offline template for ${skillName}\n---\n# ${skillName} (Fallback Standard)\n\nFollow best practices for ${skillName}.\n`;
+        const fallbackMd = `<!-- @cache-control: ephemeral -->\n<!-- @origin: 来源: 本地微模板降级 -->\n---\nname: ${sanitizeName}\ndescription: Fallback offline template for ${sanitizeName}\n---\n# ${sanitizeName} (Fallback Standard)\n\nFollow best practices for ${sanitizeName}.\n`;
         fs.writeFileSync(path.join(projectTargetPath, 'SKILL.md'), fallbackMd, 'utf-8');
-        console.log(`✅ Created offline fallback skill template at ${projectTargetPath}`);
         return { success: true, origin: '来源: 本地微模板降级', reason: inferReason };
     }
 }
