@@ -1,27 +1,31 @@
 # Skill Orchestrator (v3.8.0)
 
-> Dynamic Project Skill Orchestrator for AI Coding Agents - 0 Base Token Optimization & Multi-Source Ecosystem Engine.
+> Dynamic Project Skill Orchestrator & 0 Base Token Budget Management Engine for AI Coding Agents.
 
 [English](README.md) | [简体中文](README_CN.md)
 
 ---
 
-## 🔥 Pain Points & Core Capabilities
+## 🌟 User Features & Key Benefits
 
-In traditional setups, all AI Agent Skills are preloaded upfront into every conversation, leading to massive context waste and fragmented private assets. `skill-orchestrator` resolves this by maintaining a unified shared cold archive vault and code-level dynamic skill inference:
+1. **⚡ Zero Base Token Context Release**:
+   Archives 66+ domain skills into a shared cold vault, reducing base context overhead by 95%+ and accelerating response speeds by 4x.
 
-| Pain Point | Traditional Mode (All Preloaded) | Skill Orchestrator (v3.8.0 Architecture) | Key Capability |
-| :--- | :--- | :--- | :--- |
-| **Base Token Overhead** | ~9,757 Tokens (Uses ~50% context budget) | **~0 - 500 Tokens** (Reduced by 95%+) | **0 Base Token Release**: Minimal hot base isolated from private cold vault |
-| **Twin Human-Machine Panel** | Scattered config files hard to inspect visually | **`so_skills_registry` Twin Files** | **Twin Symmetric System**: Markdown human UI panel & JSON machine engine |
-| **Private Skill Fragmentation**| Isolated & duplicated across agent/IDE folders | **Unified Shared Cold Vault** (`~/.agents/skills_archive/`) | **Unified Cross-IDE Assets**: 0ms shared across Antigravity/Trae/Claude |
-| **Skill Lifecycle & Scope** | Global pollution, chaotic project loading | **Priority-Based Dynamic Loading** (Project > Cold Vault > Cloud) | **Project-Local Encapsulation**: Skills cleanly scoped in `./.agents/skills/` |
-| **Skill Inference Dimensions**| Relies on verbal user description & LLM guesses | **5-Dimension Code Inference** (Scans `package.json`/extensions/intent) | **Zero-Friction Inference**: Auto-scans config files & `.glsl`/`.swift` extensions |
-| **Short Aliases & Directives** | Relies on memorizing long CLI commands | **`so` and `so-xxx` Quick Directives** | **Frictionless Control**: `so-status`, `so-infer`, `so-sync`, `so-cleanup` |
+2. **🌐 Unified Cross-IDE Shared Asset Vault**:
+   Shares a single private cold vault (`~/.agents/skills_archive/`) across Antigravity, Trae, Claude Code, Cursor, and Windsurf. Collect once, use everywhere.
+
+3. **💬 Direct Skill Name Mention Auto-Activation**:
+   No manual CLI commands needed! Simply mention a skill name in chat (e.g. `apple-design` or `3d-web-experience`), and the AI silently activates it in 0ms.
+
+4. **🎨 Categorized Visual Control Panel**:
+   Open [so_skills_registry.md](file:///C:/Users/Amasun-PC/.agents/so_skills_registry.md) to toggle skills on `[x]` or off `[ ]` across domain categories (UI/UX, Figma, Engineering, BigData, Docs).
+
+5. **⚡ Short Aliases & Directives (`so-xxx`)**:
+   Provides simple directives: `so-status` (Health Card), `so-infer` (Dependency Matching), `so-sync` (Vault Sync), `so-cleanup` (Project Cleanup), and `so-eject` (Safe Restore).
 
 ---
 
-## 🚀 Quick Start & Usage
+## 🚀 Quick Start & Commands
 
 ### 1. Install via Official NPM Registry
 ```bash
@@ -33,91 +37,32 @@ npx skills add skill-orchestrator
 npx skills add amasun/skill-orchestrator
 ```
 
-### Short Aliases & Directives (`so` & `so-xxx`)
+### Quick Directives (`so-xxx`)
 ```bash
-# 1. Inspect Token budget diagnostics & twin registry health card
+# 1. Inspect Token budget health card & control panel
 so-status  # or npx skill-orchestrator status
 
-# 2. Multi-source dependency inference (Zero-friction code & skill match)
+# 2. Auto-infer dependencies based on project code & stack
 so-infer   # or npx skill-orchestrator infer
 
-# 3. Auto-sync cold vault, generate domain-categorized Markdown panel & JSON DB
+# 3. Synchronize cold vault & update visual control panel
 so-sync    # or npx skill-orchestrator sync
 
-# 4. Skill merge & deduplication engine (Consolidate duplicates to slash base tokens)
+# 4. Merge & deduplicate cold archive skills
 so-merge   # or npx skill-orchestrator merge
 
-# 5. Project milestone cleanup (Return temporary skills to 0-Token cold vault)
+# 5. Project milestone cleanup (Return to 0-Token cold state)
 so-cleanup # or npx skill-orchestrator cleanup
 
-# 6. Offboard eject (Restore all skills to original IDE paths & uninstall safely)
+# 6. Eject & safely restore all skills to original IDE paths
 so-eject   # or npx skill-orchestrator eject
 ```
 
 ---
 
-## 🌐 5-Registry Cascade Resolution
+## 📊 Token Telemetry Health Card
 
-When a requested skill is not found in the local cold vault, the resolution engine automatically initiates a **5-tier registry cascade lookup**:
-
-| Registry / Source | Maintainer / Provider | Key Specialization Domain | Automatic Resolution Logic |
-| :--- | :--- | :--- | :--- |
-| **1. Vercel (`vercel-labs`)** | Vercel & Open Source | Web Frontend, Next.js, UI/UX Guidelines | `npx skills add <name>` |
-| **2. Upskill (`upskill.dev`)** | Security Teams | Malicious Code Defense, Security Audits | `npx upskill add <name>` |
-| **3. Giants (`Stripe/Cloudflare`)**| Tech Giants | Official APIs, Serverless, Edge Databases | `npx skills add owner/repo` |
-| **4. Gitee / CDN Mirrors** | Gitee / jsDelivr | Fast Regional Access (Ping < 30ms) | `npx skills add vercel-labs/skills/<name>` |
-| **5. Private GitHub Org** | Your Enterprise Team | Internal Private Architecture & Business Moats | `npx skills add your-org/repo` |
-
----
-
-## 🏗️ Architecture & Diagrams
-
-### 1. 3-Tier Hybrid Architecture
-
-```mermaid
-flowchart TD
-    classDef hotStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
-    classDef coldStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
-    classDef cloudStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
-    classDef phaseStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
-
-    subgraph STORAGE["3-Tier Storage & Skill Sources"]
-        direction TB
-        HotCore["1. Hot Core Base Storage<br>config/skills/<br>2-3 Universal Base Skills Only<br>(Tokens Overhead &le; 500)"]:::hotStyle
-        ColdArchive["2. Unified Shared Private Cold Vault<br>~/.agents/skills_archive/<br>Cross-IDE Shared Custom Skills<br>(Tokens Overhead = 0)"]:::coldStyle
-        VercelCloud["3. Vercel Cloud Registry<br>vercel-labs/skills API<br>Massive Open-Source Skill Library<br>(Tokens Overhead = 0)"]:::cloudStyle
-    end
-
-    subgraph LIFECYCLE["Project Lifecycle Workflow"]
-        direction TB
-        P1["Phase 1: Product Requirements<br>・0 Project-level skills<br>・Fast discussion on docs & architecture<br>・0 Extra Token Overhead"]:::phaseStyle
-        P2["Phase 2: Cascade Resolution & Inference<br>・Auto-Infer: Scans configs & extensions<br>・1st Priority: Shared Cold Vault<br>・2nd Priority: Vercel Cloud Registry<br>・Outputs source origins & Token health card"]:::phaseStyle
-        P3["Phase 3: Development & Incremental Addition<br>・Project-scoped skills loaded<br>・Mid-project additions handled incrementally<br>・Frequent deletions prohibited to prevent waste"]:::phaseStyle
-        P4["Phase 4: Milestone Cleanup<br>・Project milestone completion<br>・Wipes project .agents/skills/<br>・Restores clean 0-token state"]:::phaseStyle
-
-        P1 --> P2 --> P3 --> P4
-    end
-
-    ColdArchive -.->|Priority 1: Cold Vault Match| P2
-    VercelCloud -.->|Priority 2: Cloud Fallback Pull| P2
-```
-
-### 2. Manual Skill Auto-Sync Flow
-
-```mermaid
-flowchart TD
-    UserAction["User manually runs:<br>npx skills add <name>"] --> PublicFolder["Placed in public directory:<br>config/skills/"]
-    PublicFolder --> Trigger["AI starts new chat OR runs so-sync"]
-    Trigger --> Detect["runSync() detects diff:<br>Finds newly added non-base skill"]
-    Detect --> Migrate["Auto-migrates to cold vault:<br>Move skill to ~/.agents/skills_archive/"]
-    Migrate --> Result["Global base tokens instantly reset to minimal (&le; 500 Tokens)!"]
-```
-
----
-
-## 📊 Telemetry Report Protocol
-
-Use `so-status` to display the Token diagnostics card:
+Use `so-status` to display the transparent Token health report:
 
 ```text
 ------------------------------------------------------------
@@ -125,32 +70,13 @@ Use `so-status` to display the Token diagnostics card:
 ------------------------------------------------------------
 Global Base Overhead : ~420 Tokens [Status: Healthy 🟢]
 Project-Scoped Skills: 
-   ├── 3d-web-experience   : 450 Tokens (Origin: Cold Archive | Infer: package.json)
+   ├── 3d-web-experience   : 450 Tokens (Origin: Cold Archive)
    ├── web-shader-extractor: 380 Tokens (Origin: Code Feature [.glsl])
-   ├── upskill/sec-header  : 460 Tokens (Origin: Upskill Registry | Infer: Security Audit)
-   ├── stripe/agent-skills : 510 Tokens (Origin: GitHub Org | Infer: Dependency Match)
-   └── svelte-kit          : 470 Tokens (Origin: Vercel Registry | Infer: User Intent)
+   └── stripe/agent-skills : 510 Tokens (Origin: GitHub Org)
 ------------------------------------------------------------
-Total Project Token Overhead : 2,690 Tokens (Save 72.4% vs Preload All)
+Total Project Token Overhead : 1,760 Tokens (Save 82% vs Preload All)
 Prompt Cache Anchor          : Injected (4x Speedup)
 ============================================================
-```
-
----
-
-## 🛠️ Node.js Environment Self-Healing
-
-If Node.js is missing on the user system, the AI Agent silently installs it in the background:
-
-```bash
-# Windows (Uses native winget for silent background installation with 0 popups)
-winget install OpenJS.NodeJS.LTS --silent --accept-source-agreements --accept-package-agreements
-
-# macOS (Uses Homebrew for silent installation)
-brew install node
-
-# Linux (Debian/Ubuntu silent installation)
-sudo apt-get update -y && sudo apt-get install -y nodejs npm
 ```
 
 ---
@@ -189,35 +115,3 @@ sudo apt-get update -y && sudo apt-get install -y nodejs npm
 
 ### Q11: How can I safely uninstall and restore all skills to original IDE paths?
 **A**: Send `so-eject` (or `/so-eject`). The system restores 100% of archived skills back to their original IDE folders with 0 data loss and uninstalls safely.
-
----
-
-## ⚙️ Unified Twin Machine Engine Database (`~/.agents/so_skills_registry.json`)
-
-The orchestrator maintains a single machine database at `~/.agents/so_skills_registry.json` (v2.1.0 Homogeneous Skill Architecture) managing both Core Base Skills (`core_base_skills`) and Cold Vault Skills (`category: "base" | "vault"`):
-
-```json
-{
-  "version": "2.1.0",
-  "updatedAt": "2026-07-28T18:29:29.341Z",
-  "core_base_skills": [
-    "agentic-workflow",
-    "find-skills",
-    "z-coding-refactoring",
-    "skill-orchestrator"
-  ],
-  "skills": {
-    "skill-orchestrator": {
-      "category": "base",
-      "status": "active",
-      "purpose": "Zero-token skill orchestrator & multi-source ecosystem engine",
-      "description": "Zero-token skill orchestrator & multi-source ecosystem engine...",
-      "tokens": 2800,
-      "origins": [
-        "C:\\Users\\Amasun-PC\\.gemini\\config\\skills\\skill-orchestrator",
-        "C:\\Users\\Amasun-PC\\.agents\\skills\\skill-orchestrator"
-      ]
-    }
-  }
-}
-```
