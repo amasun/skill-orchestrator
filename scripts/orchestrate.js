@@ -3,14 +3,16 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const HOME_DIR = process.env.USERPROFILE || process.env.HOME;
-const ARCHIVE_DIR = path.join(HOME_DIR, '.gemini', 'antigravity', 'skills_archive');
+// Unified Shared Cold Archive Vault across all IDEs and Agent Assistants
+const ARCHIVE_DIR = process.env.SKILLS_ARCHIVE_DIR || path.join(HOME_DIR, '.agents', 'skills_archive');
 
 // Well-known Agent skill directories across different platforms
 const AGENT_SKILL_PATHS = [
     path.join(HOME_DIR, '.gemini', 'config', 'skills'),
     path.join(HOME_DIR, '.agents', 'skills'),
     path.join(HOME_DIR, '.claude', 'skills'),
-    path.join(HOME_DIR, '.trae-cn', 'skills')
+    path.join(HOME_DIR, '.trae-cn', 'skills'),
+    path.join(HOME_DIR, '.gemini', 'antigravity', 'skills_archive') // Legacy migration path
 ];
 
 const CORE_SKILLS = ['z-coding-refactoring', 'agentic-workflow', 'skill-orchestrator', 'find-skills'];
@@ -59,48 +61,59 @@ function ensureDir(dir) {
 // -------------------------------------------------------------------
 // Module 2: Prompt Cache Anchor & Origin Tag Injection
 // -------------------------------------------------------------------
-function injectCacheControl(skillDir, originInfo = '来源: 本地冷库') {
+function injectCacheControl(skillDir, originInfo) {
     const skillMdPath = path.join(skillDir, 'SKILL.md');
-    if (fs.existsSync(skillMdPath)) {
-        try {
-            let content = fs.readFileSync(skillMdPath, 'utf-8');
-            if (!content.includes('@cache-control: ephemeral')) {
-                const cacheHeader = `<!-- @cache-control: ephemeral -->\n<!-- @origin: ${originInfo} -->\n`;
-                fs.writeFileSync(skillMdPath, cacheHeader + content, 'utf-8');
-            }
-        } catch (e) {}
+    if (!fs.existsSync(skillMdPath)) return;
+
+    try {
+        let content = fs.readFileSync(skillMdPath, 'utf-8');
+        let modified = false;
+
+        if (!content.includes('<!-- @cache-control: ephemeral -->')) {
+            content = `<!-- @cache-control: ephemeral -->\n` + content;
+            modified = true;
+        }
+
+        if (!content.includes('<!-- @origin:')) {
+            content = `<!-- @origin: ${originInfo} -->\n` + content;
+            modified = true;
+        }
+
+        if (modified) {
+            fs.writeFileSync(skillMdPath, content, 'utf-8');
+        }
+    } catch (err) {
+        console.warn(`⚠️ Failed to inject cache control tag into ${skillMdPath}: ${err.message}`);
     }
 }
 
 // -------------------------------------------------------------------
-// Module 3: 5-Registry Universal Resolution Engine (支持 5 大云端源)
+// Module 3: 5-Registry Cascade Resolution Engine (Vercel, Upskill, GitHub Orgs, CDN, Fallback)
 // -------------------------------------------------------------------
-function fetchSkillWithCircuitBreaker(skillName, inferReason = 'package.json', projectCwd = process.cwd()) {
-    const sanitizeName = skillName.includes('/') ? skillName.split('/').pop() : skillName;
-    const localArchivePath = path.join(ARCHIVE_DIR, sanitizeName);
-    const projectSkillsDir = path.join(projectCwd, '.agents', 'skills');
-    ensureDir(projectSkillsDir);
-    const projectTargetPath = path.join(projectSkillsDir, sanitizeName);
+function fetchSkillWithCircuitBreaker(skillName, inferReason = '需求意图', projectCwd = process.cwd()) {
+    const sanitizeName = skillName.split('/').pop();
+    const projectTargetPath = path.join(projectCwd, '.agents', 'skills', sanitizeName);
 
-    // Short-Circuit Check: Already exists in project directory
+    // Source 1: Local Project Scope (Short-circuit if already present)
     if (fs.existsSync(projectTargetPath)) {
-        console.log(`ℹ️ Skill [${sanitizeName}] already loaded in project scope.`);
-        return { success: true, origin: '已在当前项目加载', reason: inferReason };
+        return { success: true, origin: '来源: 本项目已已有', reason: inferReason };
     }
 
-    // Source 1: Local Private Vault (skills_archive/) -> Priority 1 (0ms latency)
-    if (fs.existsSync(localArchivePath)) {
-        console.log(`🎯 Hit Source 1 [本地私有冷库]: Copying [${sanitizeName}] -> Project .agents/skills/`);
-        fs.cpSync(localArchivePath, projectTargetPath, { recursive: true });
+    // Source 2: Unified Shared Cold Archive Vault (~/.agents/skills_archive/)
+    const archivePath = path.join(ARCHIVE_DIR, sanitizeName);
+    if (fs.existsSync(archivePath)) {
+        console.log(`📦 Hit Source 2 [统一共享冷库]: 0ms Loading [${sanitizeName}] into project...`);
+        ensureDir(path.dirname(projectTargetPath));
+        fs.cpSync(archivePath, projectTargetPath, { recursive: true });
         injectCacheControl(projectTargetPath, `来源: 本地冷库 | 推断: ${inferReason}`);
         return { success: true, origin: '来源: 本地冷库', reason: inferReason };
     }
 
-    // Source 2: Upskill Registry (upskill.dev) for Security/Audit Skills
+    // Source 3: Upskill Security Registry (upskill.dev)
     if (skillName.startsWith('upskill/')) {
-        console.log(`🛡️ Hit Source 2 [Upskill安全云库]: Pulling [${skillName}]...`);
+        console.log(`🛡️ Hit Source 3 [Upskill安全库]: Pulling [${skillName}]...`);
         try {
-            execSync(`npx -y upskill add ${skillName.replace('upskill/', '')}`, { cwd: projectCwd, stdio: 'pipe', timeout: 5000 });
+            execSync(`npx -y upskill add ${sanitizeName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 5000 });
             if (fs.existsSync(projectTargetPath)) {
                 injectCacheControl(projectTargetPath, `来源: Upskill安全库 | 推断: ${inferReason}`);
                 return { success: true, origin: '来源: Upskill安全库', reason: inferReason };
@@ -108,9 +121,9 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = 'package.json', p
         } catch (e) {}
     }
 
-    // Source 3: GitHub Organization / Custom Repo (owner/repo or your-org/repo)
+    // Source 4: GitHub Organization / Custom Repo (owner/repo or your-org/repo)
     if (skillName.includes('/')) {
-        console.log(`🌐 Hit Source 3 [GitHub组织/私有仓库]: Pulling [${skillName}]...`);
+        console.log(`🌐 Hit Source 4 [GitHub组织/私有仓库]: Pulling [${skillName}]...`);
         try {
             execSync(`npx -y skills add ${skillName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 5000 });
             if (fs.existsSync(projectTargetPath)) {
@@ -120,9 +133,9 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = 'package.json', p
         } catch (e) {}
     }
 
-    // Source 4: Domestic Fast CDN / Gitee Mirror Node (jsDelivr / Gitee)
+    // Source 5: Domestic Fast CDN / Gitee Mirror Node (jsDelivr / Gitee)
     try {
-        console.log(`⚡ Hit Source 4 [Gitee/CDN极速节点]: Pulling [${sanitizeName}]...`);
+        console.log(`⚡ Hit Source 5 [Gitee/CDN极速节点]: Pulling [${sanitizeName}]...`);
         execSync(`npx -y skills add vercel-labs/skills/${sanitizeName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 3000 });
         if (fs.existsSync(projectTargetPath)) {
             injectCacheControl(projectTargetPath, `来源: Gitee/CDN镜像 | 推断: ${inferReason}`);
@@ -130,8 +143,8 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = 'package.json', p
         }
     } catch (e) {}
 
-    // Source 5: Vercel Cloud Registry (vercel-labs/skills) / AWS Agent Fallback
-    console.log(`☁️ Hit Source 5 [Vercel云端/AWS Marketplace]: Pulling [${sanitizeName}]...`);
+    // Fallback Source: Vercel Cloud Registry (vercel-labs/skills) / Local Micro-Template
+    console.log(`☁️ Pulling from Vercel Cloud Registry: [${sanitizeName}]...`);
     try {
         execSync(`npx -y skills add ${sanitizeName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 5000 });
         if (fs.existsSync(projectTargetPath)) {
@@ -139,8 +152,7 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = 'package.json', p
         }
         return { success: true, origin: '来源: Vercel云端 | 仅存项目临时目录', reason: inferReason };
     } catch (err) {
-        // Fallback: Local Micro-Template Engine
-        console.warn(`🛡️ Circuit Breaker Triggered (Network Failure). Falling back to Local Micro-Template for [${sanitizeName}]...`);
+        console.warn(`🛡️ Network Fallback Engine: Generating Local Micro-Template for [${sanitizeName}]...`);
         ensureDir(projectTargetPath);
         const fallbackMd = `<!-- @cache-control: ephemeral -->\n<!-- @origin: 来源: 本地微模板降级 -->\n---\nname: ${sanitizeName}\ndescription: Fallback offline template for ${sanitizeName}\n---\n# ${sanitizeName} (Fallback Standard)\n\nFollow best practices for ${sanitizeName}.\n`;
         fs.writeFileSync(path.join(projectTargetPath, 'SKILL.md'), fallbackMd, 'utf-8');
@@ -159,13 +171,11 @@ function runInfer(projectCwd = process.cwd()) {
     const packageJsonPath = path.join(projectCwd, 'package.json');
     if (fs.existsSync(packageJsonPath)) {
         try {
-            const pkgJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-            const allDeps = { ...(pkgJson.dependencies || {}), ...(pkgJson.devDependencies || {}) };
-
+            const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+            const allDeps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
             Object.keys(allDeps).forEach(dep => {
                 if (DEPENDENCY_MAP[dep]) {
-                    const item = DEPENDENCY_MAP[dep];
-                    matchedSkills.set(item.skill, item.reason);
+                    matchedSkills.set(DEPENDENCY_MAP[dep].skill, DEPENDENCY_MAP[dep].reason);
                 }
             });
         } catch (e) {}
@@ -175,48 +185,58 @@ function runInfer(projectCwd = process.cwd()) {
     const reqTxtPath = path.join(projectCwd, 'requirements.txt');
     if (fs.existsSync(reqTxtPath)) {
         try {
-            const reqContent = fs.readFileSync(reqTxtPath, 'utf-8').toLowerCase();
-            Object.keys(DEPENDENCY_MAP).forEach(dep => {
-                if (DEPENDENCY_MAP[dep].reason === 'requirements.txt' && reqContent.includes(dep)) {
-                    const item = DEPENDENCY_MAP[dep];
-                    matchedSkills.set(item.skill, item.reason);
+            const lines = fs.readFileSync(reqTxtPath, 'utf-8').split('\n');
+            lines.forEach(line => {
+                const pkg = line.split('==')[0].split('>=')[0].trim();
+                if (DEPENDENCY_MAP[pkg]) {
+                    matchedSkills.set(DEPENDENCY_MAP[pkg].skill, DEPENDENCY_MAP[pkg].reason);
                 }
             });
         } catch (e) {}
     }
 
-    // Source C: File Extensions (.glsl, .sqlx, .swift)
-    try {
-        const files = fs.readdirSync(projectCwd);
-        files.forEach(file => {
-            const ext = path.extname(file).toLowerCase();
-            if (FILE_EXTENSION_MAP[ext]) {
-                const item = FILE_EXTENSION_MAP[ext];
-                matchedSkills.set(item.skill, item.reason);
+    // Source C: File extension scanning
+    function scanExtensions(dir) {
+        if (!fs.existsSync(dir)) return;
+        const files = fs.readdirSync(dir);
+        for (const file of files) {
+            if (file === 'node_modules' || file === '.git' || file === '.agents') continue;
+            const fullPath = path.join(dir, file);
+            if (fs.statSync(fullPath).isDirectory()) {
+                scanExtensions(fullPath);
+            } else {
+                const ext = path.extname(file);
+                if (FILE_EXTENSION_MAP[ext]) {
+                    matchedSkills.set(FILE_EXTENSION_MAP[ext].skill, FILE_EXTENSION_MAP[ext].reason);
+                }
             }
-        });
-    } catch (e) {}
-
-    if (matchedSkills.size > 0) {
-        console.log(`🎯 Auto-Inferred ${matchedSkills.size} skills from project files:`);
-        matchedSkills.forEach((reason, skillName) => {
-            console.log(`   ├── ${skillName} (${reason})`);
-            fetchSkillWithCircuitBreaker(skillName, reason, projectCwd);
-        });
-    } else {
-        console.log('ℹ️ No matching tech-stack dependencies inferred from project files.');
+        }
     }
+    scanExtensions(projectCwd);
+
+    if (matchedSkills.size === 0) {
+        console.log('ℹ️ No specific tech stack dependencies auto-detected in project files.');
+    } else {
+        console.log(`✅ Auto-detected ${matchedSkills.size} matching skills from project stack:`);
+        matchedSkills.forEach((reason, skill) => {
+            console.log(`   ├── Loading: [${skill}] (Triggered by: ${reason})`);
+            fetchSkillWithCircuitBreaker(skill, reason, projectCwd);
+        });
+    }
+
+    // Output Telemetry Status
+    runStatus(projectCwd);
 }
 
 // -------------------------------------------------------------------
-// Module 4: Token Budget Telemetry & Quota Guard Dashboard
+// Module 4: Token Telemetry & Budget Guard
 // -------------------------------------------------------------------
 function estimateTokens(text) {
-    return Math.ceil(text.length / 3.5);
+    return Math.ceil(text.length / 4);
 }
 
-function runTelemetry(projectCwd = process.cwd()) {
-    console.log('\n------------------------------------------------------------');
+function runStatus(projectCwd = process.cwd()) {
+    console.log('\n============================================================');
     console.log('[Project Skills & Token Telemetry]');
     console.log('------------------------------------------------------------');
 
@@ -293,12 +313,12 @@ function runTelemetry(projectCwd = process.cwd()) {
 // Standard Actions: Init, Sync, Status, Cleanup
 // -------------------------------------------------------------------
 function runInit() {
-    console.log('🚀 Consolidating Local Private Skills across all Agents into Vault...');
+    console.log('🚀 Consolidating Local Private Skills across all Agents into Unified Shared Vault...');
     ensureDir(ARCHIVE_DIR);
     let totalConsolidated = 0;
 
     AGENT_SKILL_PATHS.forEach(agentPath => {
-        if (fs.existsSync(agentPath)) {
+        if (fs.existsSync(agentPath) && agentPath !== ARCHIVE_DIR) {
             const items = fs.readdirSync(agentPath);
             items.forEach(item => {
                 const fullPath = path.join(agentPath, item);
@@ -309,7 +329,7 @@ function runInit() {
                             fs.cpSync(fullPath, targetPath, { recursive: true });
                             fs.rmSync(fullPath, { recursive: true, force: true });
                             totalConsolidated++;
-                            console.log(`📦 Consolidated private asset [${item}] -> Archive Vault`);
+                            console.log(`📦 Consolidated private asset [${item}] -> Unified Shared Archive Vault`);
                         } catch (e) {}
                     }
                 }
@@ -317,80 +337,84 @@ function runInit() {
         }
     });
 
-    console.log(`\n✅ Consolidated ${totalConsolidated} local private skills into archive vault: ${ARCHIVE_DIR}`);
-    runTelemetry();
+    console.log(`\n✅ Consolidated ${totalConsolidated} local private skills into Unified Shared Vault: ${ARCHIVE_DIR}`);
 }
 
 function runSync() {
-    console.log('🔍 Scanning for newly added public skills from manual npx commands...');
+    console.log('🔄 Checking for newly added public skills across Agent directories...');
     ensureDir(ARCHIVE_DIR);
-    let newlyArchived = 0;
+    let totalSynced = 0;
 
     AGENT_SKILL_PATHS.forEach(agentPath => {
-        if (fs.existsSync(agentPath)) {
+        if (fs.existsSync(agentPath) && agentPath !== ARCHIVE_DIR) {
             const items = fs.readdirSync(agentPath);
             items.forEach(item => {
                 const fullPath = path.join(agentPath, item);
                 if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory() && !CORE_SKILLS.includes(item)) {
                     const targetPath = path.join(ARCHIVE_DIR, item);
-                    try {
-                        fs.cpSync(fullPath, targetPath, { recursive: true });
-                        fs.rmSync(fullPath, { recursive: true, force: true });
-                        newlyArchived++;
-                        console.log(`✨ Detected manual npx skill [${item}] -> Auto-Migrated to Private Vault!`);
-                    } catch (e) {}
+                    if (!fs.existsSync(targetPath)) {
+                        try {
+                            fs.cpSync(fullPath, targetPath, { recursive: true });
+                            fs.rmSync(fullPath, { recursive: true, force: true });
+                            totalSynced++;
+                            console.log(`📦 Auto-synced [${item}] -> Unified Shared Archive Vault`);
+                        } catch (e) {}
+                    }
                 }
             });
         }
     });
 
-    if (newlyArchived > 0) {
-        console.log(`🎉 Auto-Migrated ${newlyArchived} newly installed skills!`);
-    } else {
-        console.log('✅ All skills up to date. No orphaned public skills detected.');
-    }
-    runTelemetry();
+    console.log(`\n✅ Sync complete. Migrated ${totalSynced} new skills to Unified Shared Vault: ${ARCHIVE_DIR}`);
 }
 
 function runCleanup(projectCwd = process.cwd()) {
+    console.log('🧹 Cleaning up project-level skills...');
     const projectSkillsDir = path.join(projectCwd, '.agents', 'skills');
+
     if (fs.existsSync(projectSkillsDir)) {
-        fs.rmSync(projectSkillsDir, { recursive: true, force: true });
-        console.log(`🧹 Cleaned temporary project skills at: ${projectSkillsDir}`);
+        try {
+            fs.rmSync(projectSkillsDir, { recursive: true, force: true });
+            console.log(`✅ Removed temporary project skills from: ${projectSkillsDir}`);
+        } catch (err) {
+            console.error(`❌ Failed to cleanup ${projectSkillsDir}: ${err.message}`);
+        }
     } else {
-        console.log(`ℹ️ No project skills found at: ${projectSkillsDir}`);
+        console.log('ℹ️ No project-level skills found to cleanup.');
     }
-    runTelemetry();
 }
 
-const command = process.argv[2] || 'status';
-const targetArg = process.argv[3];
+// -------------------------------------------------------------------
+// CLI Router
+// -------------------------------------------------------------------
+const command = process.argv[2];
 
 switch (command) {
     case 'init':
         runInit();
         break;
-    case 'sync':
-        runSync();
-        break;
     case 'infer':
         runInfer();
         break;
-    case 'fetch':
-        if (targetArg) {
-            fetchSkillWithCircuitBreaker(targetArg);
-        } else {
-            console.log('Usage: node orchestrate.js fetch <skill-name>');
-        }
+    case 'sync':
+        runSync();
         break;
-    case 'telemetry':
     case 'status':
-        runTelemetry();
+        runStatus();
         break;
     case 'cleanup':
         runCleanup();
         break;
     default:
-        console.log(`Unknown command: ${command}`);
-        console.log('Usage: node orchestrate.js [init|sync|infer|fetch|status|cleanup]');
+        console.log(`
+Skill Orchestrator Engine (v2.6) - Unified Shared Archive Edition
+
+Usage:
+  node scripts/orchestrate.js init    - Consolidate local private skills into Unified Shared Vault
+  node scripts/orchestrate.js infer   - Infer dependencies from project stack & auto-load skills
+  node scripts/orchestrate.js sync    - Auto-detect manual npx skills & migrate to vault
+  node scripts/orchestrate.js status  - Display active vs archived skills token telemetry
+  node scripts/orchestrate.js cleanup - Clean up project-level skills
+        `);
+        break;
 }

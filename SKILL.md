@@ -2,7 +2,7 @@
 name: skill-orchestrator
 description: >
   Dynamic Project Skill Orchestrator. Minimizes global base token overhead by maintaining
-  a cold archive vault and dynamically matching, copying, and managing project-level skills
+  a unified shared cold archive vault and dynamically matching, copying, and managing project-level skills
   throughout the project lifecycle (Init -> Requirements Alignment -> Single-Directional Addition -> Final Cleanup).
   Activate when user asks to manage skills, infer dependencies, check token status, or run slash commands (/status, /infer, /init, /sync, /cleanup).
 ---
@@ -24,7 +24,7 @@ AI Agent execution rules for dynamic skill orchestration and zero-base-token opt
 ## Resolution Priority
 
 1. **Project Scope** (`./.agents/skills/`): Priority 1 (Local reuse)
-2. **Cold Archive** (`~/.<agent>/skills_archive/`): Priority 2 (0ms Copy, 0 Base Tokens)
+2. **Unified Shared Cold Archive** (`~/.agents/skills_archive/`): Priority 2 (0ms Copy, 0 Base Tokens, Cross-IDE Shared)
 3. **Hot Base** (`~/.<ide-or-agent>/skills/`): Priority 3 (Core base only, <= 500 Tokens)
 
 ## Telemetry Report Format
@@ -50,7 +50,7 @@ Prompt Cache Anchor          : Injected (4x Speedup)
 
 ## Lifecycle Rules
 
-1. **`init`**: Run `node scripts/orchestrate.js init` to move non-core global skills into archive vault.
+1. **`init`**: Run `node scripts/orchestrate.js init` to move non-core global skills into unified shared archive vault (`~/.agents/skills_archive/`).
 2. **`infer`**: Run `node scripts/orchestrate.js infer` when project scope locks or dependencies change. Print Telemetry Report.
-3. **`sync`**: Run `node scripts/orchestrate.js sync` to capture manual `npx` skills into cold archive.
+3. **`sync`**: Run `node scripts/orchestrate.js sync` to capture manual `npx` skills into unified shared archive vault.
 4. **`cleanup`**: Run `node scripts/orchestrate.js cleanup` upon project completion.

@@ -8,9 +8,10 @@
 
 在传统模式下，所有的 AI Agent 技能（Skills）都会在开局对话中被一次性预加载，这导致了极大的上下文浪费。
 
-| 痛点问题 | 传统模式 (All Preloaded) | 本策略架构 (工业级全模块架构) |
+| 痛点问题 | 传统模式 (All Preloaded) | 本策略架构 (全平台统一共享冷库架构) |
 | :--- | :--- | :--- |
 | **开局 Token 占用** | ~9,757 Tokens (占用近 50% 预算槽) | **~0 - 500 Tokens** (节省 95%+) |
+| **私有冷库共享** | 各 IDE 工具相互隔离重复存储 | **全平台统一共享冷库** (`~/.agents/skills_archive/` 一次积累全端生效) |
 | **技能推断维度** | 依赖人类口头语言描述与 LLM 语义猜测 | **代码层 5 维自动推断** (扫 `package.json`/配置文件/代码后缀 + 语义) |
 | **云端源覆盖度** | 单一依赖 Vercel 注册表 | **全网多云端源级联支持** (Vercel, Upskill, GitHub Orgs, CDN, 私有Org) |
 | **响应速度与费用** | 每轮对话重复计算 10k Token 提示词 | **Prompt Cache 缓存锚点** (闪电提速 4x，费用降低 90%) |
@@ -25,20 +26,21 @@
 | 目录路径 (Directory Path) | 目录角色与定位 | 加载与匹配优先级 | Token 空间影响 | 生命周期与清理 |
 | :--- | :--- | :---: | :---: | :--- |
 | **`<项目根目录>/.agents/skills/`** | **本项目专属动态技能目录** (Project Scope) | **第 1 优先级** (优先复用当前项目内已装载技能) | 仅在当前项目占用 (~300-500 Tokens) | 项目结项使用 `/cleanup` 一键清理 |
-| **`~/.<agent>/skills_archive/`** | **本地私有冷归档库** (Local Cold Archive Vault) | **第 2 优先级** (命中即 0ms 复制入项目，截断网络) | **0 Tokens** (完全冷冻，开局 0 占用) | 永久私有保存，绝对不随项目清理 |
+| **`~/.agents/skills_archive/`** | **全平台统一共享私有冷库** (Unified Shared Cold Vault) | **第 2 优先级** (命中即 0ms 复制入项目，跨 IDE 全端共享) | **0 Tokens** (完全冷冻，开局 0 占用) | 永久私有保存，绝对不随项目清理 |
 | **`~/.<ide-or-agent>/skills/`** | **当前 IDE / Agent 全局热底座目录** (Hot Core Base) | **第 3 优先级** (仅常驻 2-3 个通用核心 Skill) | 保持极低开销 (&le; 500 Tokens) | 常驻热加载 |
-| **`~/.agents/skills/`**<br>**`~/.claude/skills/`**<br>**`~/.trae-cn/skills/`** | **第三方 Agent 全局公共目录** (Public Skill Folders) | **自动巡检捕获** (检测用户手动 `npx` 安装的新技能) | 触发 `runSync` 后恢复极简 | 巡检捕获后自动迁移移入 `skills_archive/` |
+| **`~/.agents/skills/`**<br>**`~/.claude/skills/`**<br>**`~/.trae-cn/skills/`** | **第三方 Agent 全局公共目录** (Public Skill Folders) | **自动巡检捕获** (检测用户手动 `npx` 安装的新技能) | 触发 `runSync` 后恢复极简 | 巡检捕获后自动迁移移入共享冷库 |
 
 ---
 
 ## 本 Skill 功能特点 (What This Skill Can Do)
 
-1. **0 开局底座 Token 空间释放**：通过建立本地私有冷库 (`skills_archive/`)，将开局预载开销从 9,757 压降至 500 Tokens 以内（降低 95%+）。
-2. **分优先级按需调度装载**：严格按优先级（项目目录 > 本地冷库 > 云端库）调度，本项目所需技能精准拉取并收拢在当前项目目录（`./.agents/skills/`）中，资源与状态一目了然！
-3. **零沟通代码依赖自动推断**：自动扫描项目代码（`package.json` / `requirements.txt` / `.glsl` / `.swift`），零沟通自动匹配并装载对应技能。
-4. **全网多云端源与本地注册表无缝级联**：支持 Vercel、Upskill 安全库、GitHub 官方组织仓库 (`owner/repo`)、国内极速 CDN 及团队私有库。
-5. **透明 Token 汇报卡与 100% 来源追溯**：项目首轮或随时使用 `/status` 输出极简健康汇报卡，精准标注每个技能的来源出处与推断依据。
-6. **Prompt Cache 缓存锚点注入**：自动在装载技能中注入 `<!-- @cache-control: ephemeral -->` 头部，提高 4 倍响应速度并降低 90% 费用。
+1. **0 开局底座 Token 空间释放**：通过建立全平台统一共享私有冷库 (`~/.agents/skills_archive/`)，将开局预载开销从 9,757 压降至 500 Tokens 以内（降低 95%+）。
+2. **全平台统一共享资产库**：在 Antigravity、Trae、Claude Code 或 Cursor 中积累的私有技能，跨工具 0ms 无缝共享复用！
+3. **分优先级按需调度装载**：严格按优先级（项目目录 > 共享冷库 > 云端库）调度，本项目所需技能精准拉取并收拢在当前项目目录（`./.agents/skills/`）中，资源与状态一目了然！
+4. **零沟通代码依赖自动推断**：自动扫描项目代码（`package.json` / `requirements.txt` / `.glsl` / `.swift`），零沟通自动匹配并装载对应技能。
+5. **全网多云端源与本地注册表无缝级联**：支持 Vercel、Upskill 安全库、GitHub 官方组织仓库 (`owner/repo`)、国内极速 CDN 及团队私有库。
+6. **透明 Token 汇报卡与 100% 来源追溯**：项目首轮或随时使用 `/status` 输出极简健康汇报卡，精准标注每个技能的来源出处与推断依据。
+7. **Prompt Cache 缓存锚点注入**：自动在装载技能中注入 `<!-- @cache-control: ephemeral -->` 头部，提高 4 倍响应速度并降低 90% 费用。
 
 ---
 
@@ -52,7 +54,7 @@
  ├── 2. 代码特征与后缀扫描 (.glsl / .swift / .sqlx / .figma.ts)
  ├── 3. 用户对话意图与语义匹配 ("做个磨砂玻璃 UI" / "检查 API 安全头")
  ├── 4. 显式斜杠快捷唤醒 (/solidity, /gsap-core)
- └── 5. 三级级联查找与去重锁 (项目局部 -> 私有冷库 -> 多云端源)
+ └── 5. 三级级联查找与去重锁 (项目局部 -> 共享冷库 -> 多云端源)
 ```
 
 | 推断维度 | 触发探测源 | 典型匹配示例 |
@@ -61,7 +63,7 @@
 | **2. 代码后缀特征** | `.glsl`, `.vert`, `.frag`, `.swift`, `.sqlx` | 发现 `.glsl` ➔ `web-shader-extractor`；发现 `.swift` ➔ `figma-swiftui` |
 | **3. 对话语义意图** | 自然语言需求描述 | 提到“毛玻璃暗黑 UI” ➔ `ditther-dark-glass`；提到“SQL 注入审计” ➔ `upskill/sec-header` |
 | **4. 显式斜杠唤醒** | 斜杠指令或唤醒词 | 输入 `/solidity` ➔ 显式精确装载 `solidity` 智能合约技能 |
-| **5. 级联去重查找** | 磁盘目录锁 & 网络 API | 命中项目目录 (0ms) ➔ 命中冷库 (0ms) ➔ 级联多云端源 |
+| **5. 级联去重查找** | 磁盘目录锁 & 网络 API | 命中项目目录 (0ms) ➔ 命中共享冷库 (0ms) ➔ 级联多云端源 |
 
 ---
 
@@ -103,14 +105,14 @@ flowchart TD
     subgraph STORAGE["三级存储与技能源"]
         direction TB
         HotCore["1. 全局热存储 (Hot Core)<br>config/skills/<br>仅 2-3 个通用基础 Skill<br>(占用 Tokens &le; 500)"]:::hotStyle
-        ColdArchive["2. 本地私有冷归档 (Local Cold Archive)<br>skills_archive/<br>存放私有/定制的超强 Skill<br>(占用 Tokens = 0)"]:::coldStyle
+        ColdArchive["2. 全平台统一共享私有冷库 (Unified Shared Cold Vault)<br>~/.agents/skills_archive/<br>跨 IDE 共享私有定制 Skill<br>(占用 Tokens = 0)"]:::coldStyle
         VercelCloud["3. Vercel 云端插件库 (Vercel Cloud Registry)<br>vercel-labs/skills API<br>海量开源社区 Skill 资源库<br>(占用 Tokens = 0)"]:::cloudStyle
     end
 
     subgraph LIFECYCLE["项目生命周期全流程"]
         direction TB
         P1["Phase 1: 需求讨论期<br>・项目目录 0 技能<br>・极速沟通产品文档/架构<br>・Tokens 0 额外开销"]:::phaseStyle
-        P2["Phase 2: 级联匹配与多源依赖推断<br>・Auto-Infer: 自动扫配置文件/后缀<br>・1st 优先检索: 本地私有冷归档<br>・2nd 云端拉取: Vercel 云端库<br>・首轮自动输出多源标注与 Token 健康卡"]:::phaseStyle
+        P2["Phase 2: 级联匹配与多源依赖推断<br>・Auto-Infer: 自动扫配置文件/后缀<br>・1st 优先检索: 共享私有冷库<br>・2nd 云端拉取: Vercel 云端库<br>・首轮自动输出多源标注与 Token 健康卡"]:::phaseStyle
         P3["Phase 3: 核心开发与单向增量<br>・常驻项目专属技能<br>・中途新需求: 增量补充<br>・严禁中途频繁删除 (防废料)"]:::phaseStyle
         P4["Phase 4: 大版本交付与清理<br>・项目大版本完结<br>・统一清理项目下 .agents/skills/<br>・恢复项目干净状态"]:::phaseStyle
 
@@ -130,7 +132,7 @@ flowchart TD
     UserAction["用户手动在终端执行:<br>npx skills add (新技能名)"] --> PublicFolder["放置于公共目录:<br>config/skills/"]
     PublicFolder --> Trigger["AI 开启新对话 或 运行 npm run sync"]
     Trigger --> Detect["runSync() 自动差异比对:<br>发现非 Core 的新增技能文件夹"]
-    Detect --> Migrate["自动迁移到私有冷库:<br>Move 新技能 到 skills_archive/"]
+    Detect --> Migrate["自动迁移到共享私有冷库:<br>Move 新技能 到 ~/.agents/skills_archive/"]
     Migrate --> Result["全局开局 Token 瞬间恢复极简状态 (&le; 500 Tokens)!"]
 ```
 
@@ -175,7 +177,7 @@ npx skills add amasun/skill-orchestrator
 # 1. 多源依赖自动推断 (自动读取配置文件/代码后缀零沟通匹配技能)
 node scripts/orchestrate.js infer   # 或 npm run infer
 
-# 2. 自动巡检检测用户手动 npx 安装的新技能并移入私有冷库
+# 2. 自动巡检检测用户手动 npx 安装的新技能并移入共享冷库
 node scripts/orchestrate.js sync    # 或 npm run sync
 
 # 3. Token 预算诊断仪表盘 / 汇报卡手动唤醒 (查看精确 Token 占用与健康度)
@@ -204,13 +206,13 @@ node scripts/orchestrate.js cleanup # 或 npm run cleanup
 ## 常见问题解答 (Q&A)
 
 ### Q1: 为什么我的 AI 工具一开启对话就会占用近 10,000 个 Tokens？
-**答**：默认模式会将所有安装的技能简介全部预载入开局提示词。`skill-orchestrator` 通过建立私有冷库（`skills_archive/`），将开局占用直接从 9,757 压降到 500 个 Tokens 以内（降低 95%+）。
+**答**：默认模式会将所有安装的技能简介全部预载入开局提示词。`skill-orchestrator` 通过建立全平台统一共享私有冷库（`~/.agents/skills_archive/`），将开局占用直接从 9,757 压降到 500 个 Tokens 以内（降低 95%+）。
 
-### Q2: 除了 package.json 之外，AI 还能从哪些地方自动推断技能？
+### Q2: 统一共享私有冷库支持跨 IDE（Antigravity, Trae, Claude Code）复用吗？
+**答**：是的！系统默认将全平台统一共享私有冷库设置在 `~/.agents/skills_archive/`。在 Antigravity 中积累归档的技能，打开 Trae 或 Claude Code 可实现 0ms 无缝共享使用。
+
+### Q3: 除了 package.json 之外，AI 还能从哪些地方自动推断技能？
 **答**：支持 5 大维度推断：1. Node 的 `package.json`；2. Python 的 `requirements.txt` / Rust 的 `Cargo.toml` / Go 的 `go.mod`；3. 代码特征后缀（如 `.glsl` / `.swift` / `.sqlx`）；4. 自然语言对话意图；5. 显式输入 `/技能名` 唤醒。
-
-### Q3: 除了 Vercel，还支持从哪些云端/远程注册表检索和按需拉取技能？
-**答**：支持多云端/本地注册表：1. Vercel (`skills.sh`)；2. Upskill 安全审计库 (`upskill.dev`)；3. GitHub 巨头 Org 仓库 (`stripe/agent-skills`)；4. 国内 Gitee/jsDelivr CDN 极速节点 (Ping <30ms)；5. 您的团队私有 GitHub 组织。
 
 ### Q4: 在多源检索拉取时，如何保证技能绝不重复、绝不冲突？
 **答**：采用“1st 优先命中即短路截断”原则（本地冷库 > CDN 镜像 > 云端库）与“本地文件锁幂等校验”，确保相同技能有且仅有一份装载，0 冲突 0 重复。
@@ -228,7 +230,7 @@ node scripts/orchestrate.js cleanup # 或 npm run cleanup
 **答**：绝对不会。云端拉取的技能被视为“临时项目依赖”，仅保存在当前项目的临时目录中。项目结项清理 (`cleanup`) 时会自动随项目删除，确保您的个人私有冷库始终 100% 纯净。
 
 ### Q9: 如果我自己手动在终端敲 `npx skills add` 安装了新技能，系统能感知吗？
-**答**：能。系统内置 `runSync` 自动巡检机制。在新会话开启或运行 `npm run sync` 时，会自动捕获手动安装的公有技能并将其迁移移入私有冷库，防止开局 Token 再次膨胀。
+**答**：能。系统内置 `runSync` 自动巡检机制。在新会话开启或运行 `npm run sync` 时，会自动捕获手动安装的公有技能并将其迁移移入共享冷库，防止开局 Token 再次膨胀。
 
 ### Q10: 如果遇到断网或云端 API 崩了，系统会卡死吗？
 **答**：绝对不会。系统内置降级保护机制，遇到断网或超时，会自动秒切本地 Micro-Template 微模板降级兜底，保证开发对话永不断挂！
@@ -237,8 +239,6 @@ node scripts/orchestrate.js cleanup # 或 npm run cleanup
 
 ## 变更与迭代历史 (Changelog)
 
-- **v2.5.0 (2026-07-28)**：在 README.md 中新增整合并梳理“5 维多源自动推断逻辑”章节与维度对照表。
-- **v2.4.1 (2026-07-28)**：将 SKILL.md 转换重构为 100% 纯英文 Agent 机器指令协议。
-- **v2.3.0 (2026-07-28)**：清理特定时延表述。
-- **v2.2.0 (2026-07-28)**：全盘在底层代码实现多云端/本地注册表源的自动匹配与精准拉取。
+- **v2.6.0 (2026-07-28)**：全面升级架构为全平台统一共享私有冷库 (`~/.agents/skills_archive/`)，实现 Antigravity、Trae、Claude Code、Cursor 跨工具 0ms 资产复用与自动迁移。
+- **v2.5.0 (2026-07-28)**：新增整合 5 维多源自动推断逻辑章节。
 - **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块。
