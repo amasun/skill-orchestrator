@@ -217,20 +217,20 @@ In any AI Agent chat session, use slash commands or natural language triggers wi
 **Answer**: No. Project skills form a static context anchor at the top of the prompt. They occupy a fixed token budget (~300-500 Tokens) and never multiply across chat turns.
 
 ### Q6: Can I customize the maximum skill load limit per project?
-**Answer**: Yes! In `v3.2.2+`, the default limit is set to `10`. You can customize it via:
+**Answer**: Yes! The default limit is set to `10`. You can customize it via:
 1. CLI Flag: `--limit=8`
 2. `package.json`: `"skill-orchestrator": { "maxSkills": 8 }`
 3. Global Config: `~/.agents/config.json` (`{ "maxSkills": 8 }`)
 4. Environment Variable: `MAX_SKILLS_LIMIT=8`
 
 ### Q7: If I run `/cleanup`, how do I recover my project's previously used skills?
-**Answer**: In `v3.2.4+`, used skills are automatically recorded in your project's `package.json`. Running `node scripts/orchestrate.js infer` (or `/infer`) reads the manifest and restores all skills from the cold archive in 0ms!
+**Answer**: Used skills are automatically recorded in your project's `package.json`. Running `node scripts/orchestrate.js infer` (or `/infer`) reads the manifest and restores all skills from the cold archive in 0ms!
 
 ### Q8: Will cloud-downloaded skills pollute my private Cold Archive Vault?
 **Answer**: No. Skills pulled from cloud registries are marked as project-scoped dependencies. They reside in `./.agents/skills/` and are removed during `/cleanup`, ensuring your private cold archive remains 100% clean.
 
 ### Q9: What happens if I update a skill published on npm/cloud?
-**Answer**: In `v3.2.5+`, running `node scripts/orchestrate.js sync` (or `/sync`) detects updated skills in your IDE directories and automatically replaces old versions in the Cold Archive Vault with the latest version.
+**Answer**: Running `node scripts/orchestrate.js sync` (or `/sync`) detects updated skills in your IDE directories and automatically replaces old versions in the Cold Archive Vault with the latest version.
 
 ### Q10: How do I completely uninstall and restore all archived skills? (Eject Engine)
 **Answer**: Simply run `node scripts/orchestrate.js eject` (or `/eject`). The system reads `vault_registry.json` and restores 100% of archived skills back to their exact original IDE paths, ensuring 0 data loss.
