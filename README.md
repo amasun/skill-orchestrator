@@ -22,6 +22,55 @@ In traditional setups, all AI Agent Skills are preloaded into the context window
 
 ---
 
+## 🚀 Quick Start & Installation
+
+### 1. Install via NPM Registry
+```bash
+npx skills add skill-orchestrator
+```
+
+### 2. Install via GitHub Repository
+```bash
+npx skills add amasun/skill-orchestrator
+```
+
+### CLI Commands (For Developers & Automation)
+```bash
+# 1. Multi-Source Dependency Auto-Inference (Scans configs, file extensions & package.json)
+node scripts/orchestrate.js infer   # or npm run infer
+
+# 2. Auto-Sync scanner: Migrates manually installed npx skills to shared cold vault
+node scripts/orchestrate.js sync    # or npm run sync
+
+# 3. Token Budget Diagnostic Dashboard / Telemetry Report
+node scripts/orchestrate.js status  # or npm run status
+
+# 4. Project Milestone Cleanup (Wipes project-level temporary skills)
+node scripts/orchestrate.js cleanup # or npm run cleanup
+
+# 5. Smart Offboarding Eject (Restores skills to original IDE paths & uninstalls safely)
+node scripts/orchestrate.js eject   # or npm run eject
+```
+
+---
+
+## 🛠️ Node.js Environment Self-Healing & Silent Installation
+
+If Node.js is missing on the user's system, the AI Agent automatically detects the missing runtime and silently installs Node.js via the operating system's native package manager without prompting for manual browser downloads:
+
+```bash
+# Windows (Uses native winget silently with zero popups)
+winget install OpenJS.NodeJS.LTS --silent --accept-source-agreements --accept-package-agreements
+
+# macOS (Uses Homebrew)
+brew install node
+
+# Linux (Debian/Ubuntu)
+sudo apt-get update -y && sudo apt-get install -y nodejs npm
+```
+
+---
+
 ## 📂 Directory Paths & Priority Resolution Matrix
 
 The matrix below illustrates the location, role, and loading priority of skill assets:
@@ -136,55 +185,6 @@ Project-Scoped Skills:
 Total Project Token Overhead : 2,690 Tokens (Save 72.4% vs Preload All)
 Prompt Cache Anchor          : Injected (4x Speedup)
 ============================================================
-```
-
----
-
-## 🛠️ Node.js Environment Self-Healing & Silent Installation
-
-If Node.js is missing on the user's system, the AI Agent automatically detects the missing runtime and silently installs Node.js via the operating system's native package manager without prompting for manual browser downloads:
-
-```bash
-# Windows (Uses native winget silently with zero popups)
-winget install OpenJS.NodeJS.LTS --silent --accept-source-agreements --accept-package-agreements
-
-# macOS (Uses Homebrew)
-brew install node
-
-# Linux (Debian/Ubuntu)
-sudo apt-get update -y && sudo apt-get install -y nodejs npm
-```
-
----
-
-## 🚀 Quick Start & Installation
-
-### 1. Install via NPM Registry
-```bash
-npx skills add skill-orchestrator
-```
-
-### 2. Install via GitHub Repository
-```bash
-npx skills add amasun/skill-orchestrator
-```
-
-### CLI Commands (For Developers & Automation)
-```bash
-# 1. Multi-Source Dependency Auto-Inference (Scans configs, file extensions & package.json)
-node scripts/orchestrate.js infer   # or npm run infer
-
-# 2. Auto-Sync scanner: Migrates manually installed npx skills to shared cold vault
-node scripts/orchestrate.js sync    # or npm run sync
-
-# 3. Token Budget Diagnostic Dashboard / Telemetry Report
-node scripts/orchestrate.js status  # or npm run status
-
-# 4. Project Milestone Cleanup (Wipes project-level temporary skills)
-node scripts/orchestrate.js cleanup # or npm run cleanup
-
-# 5. Smart Offboarding Eject (Restores skills to original IDE paths & uninstalls safely)
-node scripts/orchestrate.js eject   # or npm run eject
 ```
 
 ---

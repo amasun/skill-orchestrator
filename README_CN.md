@@ -22,6 +22,55 @@
 
 ---
 
+## 🚀 安装与使用 (Quick Start & Installation)
+
+### 1. 通过 NPM 官方注册表安装
+```bash
+npx skills add skill-orchestrator
+```
+
+### 2. 通过 GitHub 仓库直接安装
+```bash
+npx skills add amasun/skill-orchestrator
+```
+
+### 命令行工具操作（开发者备用）
+```bash
+# 1. 多源依赖自动推断 (自动读取配置文件/代码后缀零沟通匹配技能)
+node scripts/orchestrate.js infer   # 或 npm run infer
+
+# 2. 自动巡检检测用户手动 npx 安装的新技能并移入共享冷库
+node scripts/orchestrate.js sync    # 或 npm run sync
+
+# 3. Token 预算诊断仪表盘 / 汇报卡手动唤醒 (查看精确 Token 占用与健康度)
+node scripts/orchestrate.js status  # 或 npm run status
+
+# 4. 项目结项一键清理
+node scripts/orchestrate.js cleanup # 或 npm run cleanup
+
+# 5. 退出机制 (还原所有归档技能至全局目录并彻底卸载，0 数据丢失)
+node scripts/orchestrate.js eject   # 或 npm run eject
+```
+
+---
+
+## 🛠️ Node.js 环境自愈与静默安装 (Node.js Environment Self-Healing)
+
+如果用户的电脑尚未安装 Node.js 环境，AI Agent 在执行任何调度指令前会自动检测并**利用操作系统内置包管理器后台静默安装 Node.js**，无需用户手动去官网下载配置：
+
+```bash
+# Windows (利用系统内置 winget 静默后台安装，0 弹窗)
+winget install OpenJS.NodeJS.LTS --silent --accept-source-agreements --accept-package-agreements
+
+# macOS (利用 Homebrew 自动静默安装)
+brew install node
+
+# Linux (Debian/Ubuntu 静默安装)
+sudo apt-get update -y && sudo apt-get install -y nodejs npm
+```
+
+---
+
 ## 📂 技能存储路径与加载优先级对照表 (Directory Paths & Priorities)
 
 使用本插件后，技能资产在磁盘上的分布定位与优先级匹配关系如下：
@@ -156,55 +205,6 @@ Prompt Cache Anchor          : Injected (4x Speedup)
 
 ---
 
-## Node.js 环境自愈与静默安装 (Node.js Environment Self-Healing)
-
-如果用户的电脑尚未安装 Node.js 环境，AI Agent 在执行任何调度指令前会自动检测并**利用操作系统内置包管理器后台静默安装 Node.js**，无需用户手动去官网下载配置：
-
-```bash
-# Windows (利用系统内置 winget 静默后台安装，0 弹窗)
-winget install OpenJS.NodeJS.LTS --silent --accept-source-agreements --accept-package-agreements
-
-# macOS (利用 Homebrew 自动静默安装)
-brew install node
-
-# Linux (Debian/Ubuntu 静默安装)
-sudo apt-get update -y && sudo apt-get install -y nodejs npm
-```
-
----
-
-## 安装与使用
-
-### 1. 通过 NPM 官方注册表安装
-```bash
-npx skills add skill-orchestrator
-```
-
-### 2. 通过 GitHub 仓库直接安装
-```bash
-npx skills add amasun/skill-orchestrator
-```
-
-### 命令行工具操作（开发者备用）
-```bash
-# 1. 多源依赖自动推断 (自动读取配置文件/代码后缀零沟通匹配技能)
-node scripts/orchestrate.js infer   # 或 npm run infer
-
-# 2. 自动巡检检测用户手动 npx 安装的新技能并移入共享冷库
-node scripts/orchestrate.js sync    # 或 npm run sync
-
-# 3. Token 预算诊断仪表盘 / 汇报卡手动唤醒 (查看精确 Token 占用与健康度)
-node scripts/orchestrate.js status  # 或 npm run status
-
-# 4. 项目结项一键清理
-node scripts/orchestrate.js cleanup # 或 npm run cleanup
-
-# 5. 退出机制 (还原所有归档技能至全局目录并彻底卸载，0 数据丢失)
-node scripts/orchestrate.js eject   # 或 npm run eject
-```
-
----
-
 ## 斜杠指令与自然语言触发 (Triggers & Shortcuts)
 
 在 AI 对话框中，无需输入命令行，直接使用**斜杠指令**或**自然语言**即可自动触发后台操作：
@@ -251,5 +251,3 @@ node scripts/orchestrate.js eject   # 或 npm run eject
 
 ### Q10: 如果我想彻底退出使用，如何安全还原所有技能并卸载？(Eject 机制)
 **答**：只需发送 `/eject`（或运行 `npm run eject`），系统会读取 `vault_registry.json`，**自动将私有冷库中的所有技能 100% 原路还原恢复移动回各大 IDE 原始目录**并安全卸载，保证 0 数据丢失！
-
-
