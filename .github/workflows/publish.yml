@@ -21,8 +21,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Verify CLI status
-        run: node scripts/orchestrate.js status
+      - name: Verify JS Syntax & CLI status
+        run: |
+          node -c scripts/orchestrate.js
+          mkdir -p ~/.agents/skills
+          node scripts/orchestrate.js status
 
   # 2. 自动化发布到 NPM 并自动创建 GitHub Release（仅在推 Tag 时执行）
   publish:
