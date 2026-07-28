@@ -38,19 +38,12 @@ An open, cross-platform Agent Skill that provides automated zero-base-token skil
 全局热底座开销 : ~420 Tokens [Status: Healthy 🟢]
 本项目专属装载 : 
    ├── 3d-web-experience   : 450 Tokens (来源: 本地冷库 | 推断: package.json)
-   ├── gsap-core           : 320 Tokens (来源: 本地冷库 | 推断: package.json)
-   ├── ml-best-practices   : 580 Tokens (来源: 本地冷库 | 推断: requirements.txt)
    ├── web-shader-extractor: 380 Tokens (来源: 本地冷库 | 推断: 代码特征 [.glsl])
-   ├── dataform-bigquery   : 410 Tokens (来源: 本地冷库 | 推断: 代码特征 [.sqlx])
-   ├── figma-swiftui       : 520 Tokens (来源: 本地冷库 | 推断: 代码特征 [.swift])
-   ├── ditther-dark-glass  : 390 Tokens (来源: 本地冷库 | 推断: 需求意图)
    ├── upskill/sec-header  : 460 Tokens (来源: Upskill安全库 | 推断: 安全审计)
-   ├── stripe/agent-skills : 510 Tokens (来源: GitHub组织(stripe) | 推断: 依赖匹配)
-   ├── solidity            : 490 Tokens (来源: Gitee/CDN镜像 | 推断: 需求意图)
-   ├── svelte-kit          : 470 Tokens (来源: Vercel云端 | 仅存项目临时目录 | 推断: 需求意图)
-   └── custom-auth-gate    : 310 Tokens (来源: 本地微模板降级 | 推断: 离线兜底)
+   ├── stripe/agent-skills : 510 Tokens (来源: GitHub组织 | 推断: 依赖匹配)
+   └── svelte-kit          : 470 Tokens (来源: Vercel云端 | 推断: 需求意图)
 ------------------------------------------------------------
-本项目总底座开销 : 5,710 Tokens (较默认全载节省 41.5% 空间)
+本项目总底座开销 : 2,690 Tokens (较默认全载节省 72.4% 空间)
 Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
 ============================================================
 ```
