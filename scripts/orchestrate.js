@@ -563,7 +563,7 @@ function runInit() {
 }
 
 function runSync() {
-    console.log('🔄 Dynamically checking for newly added skills across all discovered IDE directories...');
+    console.log('🔄 Dynamically checking for newly added or updated skills across all discovered IDE directories...');
     ensureDir(ARCHIVE_DIR);
     let totalSynced = 0;
 
@@ -588,14 +588,12 @@ function runSync() {
                             
                             recordSkillOrigin(item, fullPath);
 
-                            if (!fs.existsSync(targetPath)) {
-                                if (safeCopy(fullPath, targetPath)) {
-                                    safeRemove(fullPath);
-                                    totalSynced++;
-                                    console.log(`📦 Auto-synced [${item}] -> Vault (Origin recorded: ${fullPath})`);
-                                }
-                            } else {
+                            // Always update Cold Archive Vault with latest version from IDE
+                            safeRemove(targetPath);
+                            if (safeCopy(fullPath, targetPath)) {
                                 safeRemove(fullPath);
+                                totalSynced++;
+                                console.log(`📦 Auto-synced & updated [${item}] -> Vault (Origin recorded: ${fullPath})`);
                             }
                         }
                     } catch (e) {}
@@ -604,7 +602,7 @@ function runSync() {
         } catch (e) {}
     });
 
-    console.log(`\n✅ Sync complete. Migrated ${totalSynced} new skills to Unified Shared Vault: ${ARCHIVE_DIR}`);
+    console.log(`\n✅ Sync complete. Migrated/Updated ${totalSynced} skills to Unified Shared Vault: ${ARCHIVE_DIR}`);
 }
 
 function runCleanup(projectCwd = process.cwd()) {
@@ -710,12 +708,12 @@ switch (command) {
         break;
     default:
         console.log(`
-Skill Orchestrator Engine (v3.2.4) - Zero-Loss History Manifest Edition
+Skill Orchestrator Engine (v3.2.5) - Live Skill Hot-Sync & Auto-Update Edition
 
 Usage:
   node scripts/orchestrate.js init      - Dynamically discover IDEs, record original paths & consolidate to Vault
   node scripts/orchestrate.js infer     - Infer dependencies & restore package.json skills manifest (--limit=N)
-  node scripts/orchestrate.js sync      - Auto-detect manual npx skills, update registry & migrate to vault
+  node scripts/orchestrate.js sync      - Auto-detect manual npx skills, update vault & sync new versions
   node scripts/orchestrate.js status    - Display active vs archived skills token telemetry
   node scripts/orchestrate.js cleanup   - Clean up project-level skills (keeps package.json manifest)
   node scripts/orchestrate.js eject     - 100% exact path restoration via vault_registry.json & uninstall
