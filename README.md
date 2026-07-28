@@ -1,17 +1,17 @@
-# Skill Orchestrator 🚀
+# Skill Orchestrator
 
 > 开源 Agent 技能动态调度与 **0 底座 Token 优化** 工业级系统 (v2.0)。
 
 ---
 
-## 🏛️ 项目生命周期技能动态调度架构规范 (Project Skill Orchestration Strategy)
+## 项目生命周期技能动态调度架构规范 (Project Skill Orchestration Strategy)
 
 > **版本**：v2.0.0 (工业级全模块版)  
 > **核心原则**：依赖自动推断 · Prompt 缓存锚点 · 熔断降级保障 · Token 预算实时诊断仪表盘  
 
 ---
 
-## 📌 架构背景与核心痛点
+## 架构背景与核心痛点
 
 | 痛点问题 | 传统模式 (All Preloaded) | 本策略架构 (v2.0.0 工业级全模块架构) |
 | :--- | :--- | :--- |
@@ -23,7 +23,7 @@
 
 ---
 
-## 🚀 v2.0 四大工业级核心模块 (v2.0 Four Modules)
+## v2.0 四大工业级核心模块 (v2.0 Four Modules)
 
 ```text
 skill-orchestrator (v2.0 工业级架构版)
@@ -35,7 +35,7 @@ skill-orchestrator (v2.0 工业级架构版)
 
 ---
 
-## 🏗️ 1. 三级混合拓扑架构图 (3-Tier Hybrid Architecture)
+## 1. 三级混合拓扑架构图 (3-Tier Hybrid Architecture)
 
 ```mermaid
 flowchart TD
@@ -44,14 +44,14 @@ flowchart TD
     classDef cloudStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
     classDef phaseStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
 
-    subgraph STORAGE["🌐 三级存储与技能源"]
+    subgraph STORAGE["三级存储与技能源"]
         direction TB
-        HotCore["🔥 1. 全局热存储 (Hot Core)<br>config/skills/<br>仅 2-3 个通用基础 Skill<br>(占用 Tokens &le; 500)"]:::hotStyle
-        ColdArchive["📦 2. 本地私有冷归档 (Local Cold Archive)<br>skills_archive/<br>存放私有/定制的超强 Skill<br>(占用 Tokens = 0)"]:::coldStyle
-        VercelCloud["☁️ 3. Vercel 云端插件库 (Vercel Cloud Registry)<br>vercel-labs/skills API<br>海量开源社区 Skill 资源库<br>(占用 Tokens = 0)"]:::cloudStyle
+        HotCore["1. 全局热存储 (Hot Core)<br>config/skills/<br>仅 2-3 个通用基础 Skill<br>(占用 Tokens &le; 500)"]:::hotStyle
+        ColdArchive["2. 本地私有冷归档 (Local Cold Archive)<br>skills_archive/<br>存放私有/定制的超强 Skill<br>(占用 Tokens = 0)"]:::coldStyle
+        VercelCloud["3. Vercel 云端插件库 (Vercel Cloud Registry)<br>vercel-labs/skills API<br>海量开源社区 Skill 资源库<br>(占用 Tokens = 0)"]:::cloudStyle
     end
 
-    subgraph LIFECYCLE["🚀 项目生命周期全流程"]
+    subgraph LIFECYCLE["项目生命周期全流程"]
         direction TB
         P1["Phase 1: 需求讨论期<br>・项目目录 0 技能<br>・极速沟通产品文档/架构<br>・Tokens 0 额外开销"]:::phaseStyle
         P2["Phase 2: 级联匹配与依赖推断<br>・Auto-Infer: 自动扫 package.json<br>・1st 优先检索: 本地私有冷归档<br>・2nd 熔断保护拉取: Vercel 云端库<br>・注入 Prompt Cache 锚点至项目"]:::phaseStyle
@@ -67,20 +67,33 @@ flowchart TD
 
 ---
 
-## 🛡️ 2. 手动 `npx` 安装自动捕获巡检图 (Manual Skill Auto-Sync)
+## 2. 手动 `npx` 安装自动捕获巡检图 (Manual Skill Auto-Sync)
 
 ```mermaid
 flowchart TD
     UserAction["用户手动在终端执行:<br>npx skills add (新技能名)"] --> PublicFolder["放置于公共目录:<br>config/skills/"]
     PublicFolder --> Trigger["AI 开启新对话 或 运行 npm run sync"]
     Trigger --> Detect["runSync() 自动差异比对:<br>发现非 Core 的新增技能文件夹"]
-    Detect --> Migrate["✨ 自动迁移到私有冷库:<br>Move 新技能 到 skills_archive/"]
-    Migrate --> Result["🎉 全局开局 Token 瞬间恢复极简状态 (&le; 500 Tokens)!"]
+    Detect --> Migrate["自动迁移到私有冷库:<br>Move 新技能 到 skills_archive/"]
+    Migrate --> Result["全局开局 Token 瞬间恢复极简状态 (&le; 500 Tokens)!"]
 ```
 
 ---
 
-## 🛠️ 安装与使用
+## 级联检索与调度逻辑 (Cascade Retrieval Logic)
+
+当项目需求定稿（Phase 2）或中途引入新需求（Phase 3）时，AI 遵循以下**三级级联检索顺序**：
+
+1. **第一优先级（本地私有冷库 `skills_archive`）**：
+   * 检查您本地经过深度优化、包含 Quality Gate 的私有技能（如 `John-seedance`、`ditther-dark-glass-design`）。如果匹配，直接从本地私有库拷贝至 `项目/.agents/skills/`。
+2. **第二优先级（Vercel 云端插件库 `vercel-labs/skills`）**：
+   * 如果本地私有库没有对应技能（如项目突然需要处理 `Solidity` 合约或 `SvelteKit` 框架），AI 自动调用 Vercel 云端插件 API 去开源社区搜索并拉取最新 Skill，**直接下载到当前项目的 `./.agents/skills/` 临时目录，绝不存入个人 `skills_archive` 私有冷库**！
+3. **单向增量追加 (Incremental Addition)**：
+   * 无论是从本地私有库还是 Vercel 云端拉取的技能，在当前项目开发期内一律**只增不删**，保障上下文连贯。
+
+---
+
+## 安装与使用
 
 ### 一键安装 (Distribution)
 ```bash
@@ -104,21 +117,21 @@ npm run cleanup
 
 ---
 
-## 🛑 Quality Gate 校验清单
+## Quality Gate 校验清单
 
 | 校验维度 | 检查项 | 校验标准 |
 | :--- | :--- | :--- |
 | **全局底座** | 开局全局 Skills Token | - [ ] 保持在 &le; 1,000 Tokens (较原来节省 90%+) |
 | **依赖推断** | `package.json` 自动解析 | - [ ] 自动提取项目依赖推断需要的技能，实现零沟通匹配 |
 | **缓存锚点** | Prompt Cache 自动注入 | - [ ] 项目 Skill 自动注入 `<!-- @cache-control: ephemeral -->` 头部 |
-| **熔断防护** | 云端拉取网络超时 | - [ ] 3 秒超时自动生成 Local Micro-Template 降级兜底 |
+| **熔断防护** | 云端拉取网络超时 | - [ ] 5 秒超时自动生成 Local Micro-Template 降级兜底 |
 | **手动巡检** | 手动 npx 技能捕获 | - [ ] 自动检测公共目录新技能并移入私有冷库 `skills_archive/` |
 | **私有纯洁性** | 私有冷库资产隔离 | - [ ] Vercel 云端临时抓取的技能**禁止**写入 `skills_archive/` |
 | **结项归档** | 项目交付清理 | - [ ] 交付结项后清理项目局部临时技能 |
 
 ---
 
-## 📋 变更与迭代历史 (Changelog)
+## 变更与迭代历史 (Changelog)
 
 - **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块（依赖自动推断引擎、Prompt 缓存锚点、熔断降级引擎、Token Telemetry 诊断仪表盘）。
 - **v1.3.1 (2026-07-28)**：修复 GitHub 针对 `<>` 尖括号、`[]` 方括号标签解析的 Mermaid 语法兼容问题。
