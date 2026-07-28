@@ -112,6 +112,14 @@ When initializing or migrating skills (`/init` or onboarding), the AI Agent & En
    Maintain a matching Markdown Control Panel ([~/.agents/so_skills_registry.md](file:///C:/Users/Amasun-PC/.agents/so_skills_registry.md)). Running `npx skill-orchestrator sync` automatically maps user `[x]` / `[ ]` checkmarks into the JSON database.
 6. **Automated Domain-Category Routing Protocol**:
    When new skills are probed and discovered across any IDE directory, `skill-orchestrator` automatically inspects their name and Frontmatter `description` to categorize them directly into their appropriate Domain Blocks in `so_skills_registry.md` (`🎨 UI/UX & Motion`, `🎨 Figma Toolchain`, `🛠️ Core Engineering`, `📊 BigData & Cloud`, `📄 Office & Docs`). Unrecognized skills are routed to `## 🆕 Newly Discovered Skills (Pending Classification)`.
+7. **Skill Correlation & Related Discovery Protocol**:
+   When loading a skill (e.g. `gsap-core` or `3d-web-experience`), `skill-orchestrator` automatically calculates and suggests related cold vault skills (e.g., `gsap-scrolltrigger`, `cinematic-gsap-lenis-motion-system`) in the status report to build unified skill synergies.
+8. **Progressive Context Unloading Protocol (`references/`)**:
+   When copying skills into `<ProjectRoot>/.agents/skills/`, primary `SKILL.md` is loaded as hot prompt context (< 500 lines), while extended reference manuals are kept in `references/` subdirectories to prevent prompt bloat.
+9. **Origin & Attribution Tracking Protocol**:
+   Maintain 100% transparent skill origin paths, author/repo attributions, and `updatedAt` timestamps in `so_skills_registry.json`.
+10. **Regional CDN Mirror Fallback Protocol**:
+    Automatically fallback to Gitee and CDN mirrors (jsDelivr) when resolving cloud skills to ensure zero-latency (< 30ms) regional execution.
 
 ## AI Agent Dynamic Skill Reasoning & Ecosystem Discovery (Aligned with `find-skills`)
 

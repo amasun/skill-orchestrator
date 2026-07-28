@@ -931,14 +931,34 @@ function runInfer(projectCwd = process.cwd()) {
     } else {
         console.log(`✅ Auto-detected ${matchedSkills.size} matching skills from project stack (Safety Cap: ${maxSkillsLimit}):`);
         let loadedCount = 0;
+
         for (const [skill, reason] of matchedSkills.entries()) {
             if (loadedCount >= maxSkillsLimit) {
                 console.warn(`\n⚠️ Token Guard Alert: Matched skills exceeded safety cap of ${maxSkillsLimit}. Skipped remaining ${matchedSkills.size - loadedCount} skills to preserve Token budget.`);
                 break;
             }
             console.log(`   ├── Loading: [${skill}] (Triggered by: ${reason})`);
-            fetchSkillWithCircuitBreaker(skill, reason, projectCwd);
+            
+            const res = fetchSkillWithCircuitBreaker(skill, reason, projectCwd);
+            if (res.success) {
+                successCount++;
+
+                // Find related skills for correlation discovery
+                const prefix = skill.split('-')[0];
+                if (prefix.length > 2) {
+                    allRegisteredSkills.forEach(s => {
+                        if (s !== skill && s.startsWith(prefix) && !matchedSkills.has(s)) {
+                            relatedSuggestions.add(s);
+                        }
+                    });
+                }
+            }
             loadedCount++;
+        }
+
+        if (relatedSuggestions.size > 0) {
+            console.log(`\n💡 [Skill Correlation Recommendation] Related cold vault skills available: ${Array.from(relatedSuggestions).slice(0, 4).join(', ')}`);
+            console.log(`   (Mention any name in chat to hot-load in 0ms)`);
         }
     }
 
