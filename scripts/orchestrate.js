@@ -87,18 +87,6 @@ function injectCacheControl(skillDir, originInfo) {
     }
 }
 
-// Helper: Create 15-token Stub Placeholder at original path to satisfy client UI checks without polluting base tokens
-function createStubPlaceholder(originalPath, skillName) {
-    try {
-        if (fs.existsSync(originalPath)) {
-            fs.rmSync(originalPath, { recursive: true, force: true });
-        }
-        ensureDir(originalPath);
-        const stubMd = `---\nname: ${skillName}\ndescription: Archived into cold vault (~/.agents/skills_archive). Auto-loaded on demand.\n---\n# ${skillName} (Archived)\nAuto-loaded on demand by skill-orchestrator.\n`;
-        fs.writeFileSync(path.join(originalPath, 'SKILL.md'), stubMd, 'utf-8');
-    } catch (err) {}
-}
-
 // -------------------------------------------------------------------
 // Module 3: 5-Registry Cascade Resolution Engine (Vercel, Upskill, GitHub Orgs, CDN, Fallback)
 // -------------------------------------------------------------------
@@ -322,10 +310,10 @@ function runStatus(projectCwd = process.cwd()) {
 }
 
 // -------------------------------------------------------------------
-// Standard Actions: Init, Sync, Status, Cleanup (Stub Placeholder Preserved)
+// Standard Actions: Init, Sync, Status, Cleanup (Pure Clean Vault Consolidation)
 // -------------------------------------------------------------------
 function runInit() {
-    console.log('🚀 Consolidating Local Private Skills into Unified Shared Vault (Stub Preserved)...');
+    console.log('🚀 Consolidating Local Private Skills into Unified Shared Vault (Pure Clean)...');
     ensureDir(ARCHIVE_DIR);
     let totalConsolidated = 0;
 
@@ -338,14 +326,10 @@ function runInit() {
                     const targetPath = path.join(ARCHIVE_DIR, item);
                     if (!fs.existsSync(targetPath)) {
                         try {
-                            // Copy full skill content to cold archive vault
                             fs.cpSync(fullPath, targetPath, { recursive: true });
-                            
-                            // Replace original location with 15-token Stub Placeholder to satisfy client UI checks
-                            createStubPlaceholder(fullPath, item);
-
+                            fs.rmSync(fullPath, { recursive: true, force: true });
                             totalConsolidated++;
-                            console.log(`📦 Consolidated private asset [${item}] -> Unified Shared Vault (Stub Preserved)`);
+                            console.log(`📦 Consolidated private asset [${item}] -> Unified Shared Archive Vault`);
                         } catch (e) {}
                     }
                 }
@@ -370,14 +354,10 @@ function runSync() {
                     const targetPath = path.join(ARCHIVE_DIR, item);
                     if (!fs.existsSync(targetPath)) {
                         try {
-                            // Copy full skill content to cold archive vault
                             fs.cpSync(fullPath, targetPath, { recursive: true });
-                            
-                            // Replace original location with 15-token Stub Placeholder
-                            createStubPlaceholder(fullPath, item);
-
+                            fs.rmSync(fullPath, { recursive: true, force: true });
                             totalSynced++;
-                            console.log(`📦 Auto-synced [${item}] -> Unified Shared Vault (Stub Preserved)`);
+                            console.log(`📦 Auto-synced [${item}] -> Unified Shared Archive Vault`);
                         } catch (e) {}
                     }
                 }
@@ -427,10 +407,10 @@ switch (command) {
         break;
     default:
         console.log(`
-Skill Orchestrator Engine (v2.9) - Stub Placeholder Edition
+Skill Orchestrator Engine (v2.7.1) - Pure Clean Shared Vault Edition
 
 Usage:
-  node scripts/orchestrate.js init    - Consolidate local private skills into Unified Shared Vault (Stub Preserved)
+  node scripts/orchestrate.js init    - Consolidate local private skills into Unified Shared Vault
   node scripts/orchestrate.js infer   - Infer dependencies from project stack & auto-load skills
   node scripts/orchestrate.js sync    - Auto-detect manual npx skills & migrate to vault
   node scripts/orchestrate.js status  - Display active vs archived skills token telemetry
