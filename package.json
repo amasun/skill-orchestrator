@@ -1,6 +1,6 @@
 {
   "name": "skill-orchestrator",
-  "version": "3.2.5",
+  "version": "3.2.6",
   "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization (v3.2.5 Skill Hot-Sync & Auto-Update Edition)",
   "main": "scripts/orchestrate.js",
   "bin": {
