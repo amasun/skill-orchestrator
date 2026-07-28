@@ -14,7 +14,7 @@ An open, cross-platform Agent Skill that provides automated zero-base-token skil
 
 ## 📢 首轮对话自动汇报规范 (Proactive Telemetry Report Protocol)
 
-在任何新项目/新工作区中，当需求定稿或首轮技能调配完成后，AI 应当在回复末尾**自动输出【本项目技能与 Token 健康度汇报卡】**：
+在任何新项目/新工作区中，当需求定稿或首轮技能调配完成后，AI 应当在回复末尾**自动精准标注技能来源与归属**：
 
 ```text
 ------------------------------------------------------------
@@ -22,10 +22,11 @@ An open, cross-platform Agent Skill that provides automated zero-base-token skil
 ------------------------------------------------------------
 🔥 全局热底座开销 : ~420 Tokens [健康 🟢]
 🚀 本项目专属装载 : 
-   ├── 3d-web-experience   : 450 Tokens (匹配来源: package.json / 需求)
-   ├── gsap-core           : 320 Tokens (匹配来源: package.json / 需求)
+   ├── 3d-web-experience   : 450 Tokens (来源: 本地私有冷库 [skills_archive] | 推断: package.json)
+   ├── gsap-core           : 320 Tokens (来源: 本地私有冷库 [skills_archive] | 推断: package.json)
+   ├── solidity            : 510 Tokens (来源: Vercel 云端 [vercel-labs/skills] | 仅存项目临时目录)
 ------------------------------------------------------------
-💡 本项目总底座开销 : 1,190 Tokens (对比默认全载节省 87.8% 空间!)
+💡 本项目总底座开销 : 1,700 Tokens (对比默认全载节省 82.5% 空间!)
 ⚡ Prompt Cache 锚点: 已自动注入 (响应速度提速 4x)
 ============================================================
 ```
@@ -58,7 +59,7 @@ When this skill is active, the AI Agent adheres to the following lifecycle workf
 3. **Dependency & Requirements Finalization Phase (`infer` & `fetch`)**:
    - AI automatically inspects `package.json` and project text to match cold archive (or Vercel cloud registry).
    - Copies matching 2-3 skills into `./.agents/skills/`.
-   - **Outputs Proactive Telemetry Report Card to user**.
+   - **Outputs Proactive Telemetry Report Card with explicit origin sources**.
 4. **Development Execution Phase (`Incremental Addition`)**:
    - Single-directional addition. Never deletes active skills mid-development to prevent context fragmentation.
 5. **Project Offboarding Phase (`cleanup`)**:
