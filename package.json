@@ -1,14 +1,17 @@
 {
   "name": "skill-orchestrator",
-  "version": "1.0.0",
-  "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization",
+  "version": "2.0.0",
+  "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization (v2.0 Industrial Grade)",
   "main": "scripts/orchestrate.js",
   "bin": {
     "skill-orchestrator": "scripts/orchestrate.js"
   },
   "scripts": {
     "init": "node scripts/orchestrate.js init",
+    "sync": "node scripts/orchestrate.js sync",
+    "infer": "node scripts/orchestrate.js infer",
     "status": "node scripts/orchestrate.js status",
+    "telemetry": "node scripts/orchestrate.js telemetry",
     "cleanup": "node scripts/orchestrate.js cleanup"
   },
   "keywords": [
@@ -16,8 +19,10 @@
     "antigravity",
     "token-optimization",
     "claude-code",
-    "cursor"
+    "cursor",
+    "telemetry",
+    "dependency-injection"
   ],
-  "author": "",
+  "author": "amasun",
   "license": "MIT"
 }
