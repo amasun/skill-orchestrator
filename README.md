@@ -6,19 +6,19 @@
 
 ## 🏛️ 项目生命周期技能动态调度架构规范 (Project Skill Orchestration Strategy)
 
-> **版本**：v1.3.0 (三级混合架构与手动安装自动巡检版)  
+> **版本**：v1.3.1 (GitHub Mermaid 语法完美兼容版)  
 > **核心原则**：全局 0 占用 · 本地私有+云端双级融合 · 手动安装自动移入冷库 · 单向增量追加 · 结项统一清理  
 
 ---
 
 ## 📌 架构背景与核心痛点
 
-| 痛点问题 | 传统模式 (All Preloaded) | 本策略架构 (v1.3.0 动态调度架构) |
+| 痛点问题 | 传统模式 (All Preloaded) | 本策略架构 (v1.3.1 动态调度架构) |
 | :--- | :--- | :--- |
 | **开局 Token 占用** | ~9,757 Tokens (占用近 50% 预算槽) | **~0 - 500 Tokens** (节省 95%+) |
 | **作用域隔离** | 跨项目无差别全局加载 | **项目级隔离** (项目 A 不吃项目 B 的 Token) |
 | **私有资产纯洁性** | 云端临时技能与个人私有技能混在一起 | **严格隔离** (云端技能仅存项目临时目录，绝不污染个人私有冷库) |
-| **手动安装自动捕获**| 用户手动 npx 的技能导致开局 Token 再次膨胀 | **`runSync` 自动巡检** (检测到手动安装自动挪入私有冷库，恢复 ≤500 Tokens) |
+| **手动安装自动捕获**| 用户手动 npx 的技能导致开局 Token 再次膨胀 | **`runSync` 自动巡检** (检测到手动安装自动挪入私有冷库，恢复 &le;500 Tokens) |
 | **技能库边界** | 仅局限于本地硬编码安装的文件 | **无限扩展** (本地私有定制库 + Vercel 云端数千开源库) |
 
 ---
@@ -32,14 +32,14 @@ flowchart TD
     classDef cloudStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
     classDef phaseStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
 
-    subgraph STORAGE["🌐 三级存储与技能源 (3-Tier Storage Engine)"]
+    subgraph STORAGE["🌐 三级存储与技能源"]
         direction TB
-        HotCore["🔥 1. 全局热存储 (Hot Core)<br>C:\...\config\skills\<br>仅 2-3 个通用基础 Skill<br>(占用 Tokens ≤ 500)"]:::hotStyle
+        HotCore["🔥 1. 全局热存储 (Hot Core)<br>config/skills/<br>仅 2-3 个通用基础 Skill<br>(占用 Tokens &le; 500)"]:::hotStyle
         ColdArchive["📦 2. 本地私有冷归档 (Local Cold Archive)<br>skills_archive/<br>存放私有/定制的超强 Skill<br>(占用 Tokens = 0)"]:::coldStyle
         VercelCloud["☁️ 3. Vercel 云端插件库 (Vercel Cloud Registry)<br>vercel-labs/skills API<br>海量开源社区 Skill 资源库<br>(占用 Tokens = 0)"]:::cloudStyle
     end
 
-    subgraph LIFECYCLE["🚀 项目生命周期全流程 (Project Lifecycle)"]
+    subgraph LIFECYCLE["🚀 项目生命周期全流程"]
         direction TB
         P1["Phase 1: 需求讨论期<br>・项目目录 0 技能<br>・极速沟通产品文档/架构<br>・Tokens 0 额外开销"]:::phaseStyle
         P2["Phase 2: 级联匹配与拉取<br>・1st 优先检索: 本地私有冷归档<br>・2nd 补位检索: Vercel 云端插件库<br>・复制拉取至 项目/.agents/skills/"]:::phaseStyle
@@ -49,8 +49,8 @@ flowchart TD
         P1 --> P2 --> P3 --> P4
     end
 
-    ColdArchive -.->|优先级 1：私有匹配| P2
-    VercelCloud -.->|优先级 2：云端补位| P2
+    ColdArchive -.->|优先级 1: 私有匹配| P2
+    VercelCloud -.->|优先级 2: 云端补位| P2
 ```
 
 ---
@@ -59,15 +59,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    UserAction["用户手动在终端执行:<br>npx skills add <新技能>"] --> PublicFolder["放置于公共目录:<br>~/.gemini/config/skills/"]
-    
-    PublicFolder --> Trigger["AI 开启新对话 或 运行 `npm run sync`"]
-    
-    Trigger --> Detect["`runSync()` 自动差异比对:<br>发现非 Core 的新增技能文件夹"]
-    
-    Detect --> Migrate["✨ 自动迁移到私有冷库:<br>Move [新技能] -> skills_archive/"]
-    
-    Migrate --> Result["🎉 全局开局 Token 瞬间恢复极简状态 (≤500 Tokens)!"]
+    UserAction["用户手动在终端执行:<br>npx skills add (新技能名)"] --> PublicFolder["放置于公共目录:<br>config/skills/"]
+    PublicFolder --> Trigger["AI 开启新对话 或 运行 npm run sync"]
+    Trigger --> Detect["runSync() 自动差异比对:<br>发现非 Core 的新增技能文件夹"]
+    Detect --> Migrate["✨ 自动迁移到私有冷库:<br>Move 新技能 到 skills_archive/"]
+    Migrate --> Result["🎉 全局开局 Token 瞬间恢复极简状态 (&le; 500 Tokens)!"]
 ```
 
 ---
@@ -89,7 +85,7 @@ flowchart TD
 
 ### 一键安装 (Distribution)
 ```bash
-npx skills add <your-github-repo>/skill-orchestrator
+npx skills add amasun/skill-orchestrator
 ```
 
 ### 命令行工具操作
@@ -113,7 +109,7 @@ npm run cleanup
 
 | 校验维度 | 检查项 | 校验标准 |
 | :--- | :--- | :--- |
-| **全局底座** | 开局全局 Skills Token | - [ ] 保持在 ≤ 1,000 Tokens (较原来节省 90%+) |
+| **全局底座** | 开局全局 Skills Token | - [ ] 保持在 &le; 1,000 Tokens (较原来节省 90%+) |
 | **手动巡检** | 手动 npx 技能捕获 | - [ ] 自动检测公共目录新技能并移入私有冷库 `skills_archive/` |
 | **私有纯洁性** | 私有冷库资产隔离 | - [ ] Vercel 云端临时抓取的技能**禁止**写入 `skills_archive/` |
 | **级联检索** | 技能匹配来源优先级 | - [ ] 优先检索本地私有 Archive 库，未命中再检索 Vercel 云端 |
@@ -125,6 +121,7 @@ npm run cleanup
 
 ## 📋 变更与迭代历史 (Changelog)
 
+- **v1.3.1 (2026-07-28)**：修复 GitHub 针对 `<>` 尖括号、`[]` 方括号标签解析的 Mermaid 语法兼容问题。
 - **v1.3.0 (2026-07-28)**：新增手动 npx 安装自动巡检流程图与 `runSync` 自动归档逻辑。
 - **v1.2.0 (2026-07-28)**：增加资产分类防护规范，规定 Vercel 云端临时技能仅保留在项目临时作用域，绝不污染个人私有冷库。
 - **v1.1.0 (2026-07-28)**：引入 Vercel 云端插件 (`vercel-labs/skills`) 融合支持，确立“本地私有 + 云端补位”三级级联架构。
