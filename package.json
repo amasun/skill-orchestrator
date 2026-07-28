@@ -1,6 +1,6 @@
 {
   "name": "skill-orchestrator",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization (v3.2.5 Skill Hot-Sync & Auto-Update Edition)",
   "repository": {
     "type": "git",
@@ -13,7 +13,6 @@
   "files": [
     "SKILL.md",
     "README.md",
-    "README_CN.md",
     "scripts/",
     "package.json"
   ],
@@ -27,11 +26,22 @@
   },
   "keywords": [
     "agent-skills",
+    "skills-orchestrator",
+    "skills-orchestration",
+    "skills-optimization",
+    "skills-management",
+    "mcp",
+    "mcp-server",
     "antigravity",
     "token-optimization",
+    "context-optimization",
+    "prompt-optimization",
     "claude-code",
     "cursor",
-    "trae"
+    "trae",
+    "windsurf",
+    "ai-agent",
+    "agent-orchestrator"
   ],
   "author": "amasun",
   "license": "MIT"
