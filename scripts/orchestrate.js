@@ -59,6 +59,19 @@ function loadHotSkillsConfig() {
     return defaultConfig.core_hot_skills;
 }
 
+// Dynamically add a newly inferred meta-skill into user's hot_skills.json
+function addSkillToHotConfig(skillName) {
+    try {
+        const raw = fs.readFileSync(HOT_SKILLS_CONFIG_FILE, 'utf8');
+        const config = JSON.parse(raw);
+        if (Array.isArray(config.core_hot_skills) && !config.core_hot_skills.includes(skillName)) {
+            config.core_hot_skills.push(skillName);
+            fs.writeFileSync(HOT_SKILLS_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
+            console.log(`📌 Dynamically added [${skillName}] to Hot Base Whitelist in ${HOT_SKILLS_CONFIG_FILE}`);
+        }
+    } catch (e) {}
+}
+
 // Dynamically resolved Core Hot Skills whitelist from hot_skills.json
 const CORE_SKILLS = loadHotSkillsConfig();
 

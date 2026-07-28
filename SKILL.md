@@ -72,6 +72,20 @@ Prompt Cache Anchor          : Injected (4x Speedup)
 ============================================================
 ```
 
+## Semantic Cold-Start & Auto-Classification Rules for `init`
+
+When initializing or migrating skills (`/init` or onboarding), the AI Agent MUST perform **Semantic Reading & Intelligent Classification** for each discovered skill before deciding whether to move it:
+
+1. **Semantic Inspection**: Read each candidate's `SKILL.md` (frontmatter & core prompt).
+2. **AI Classification Criteria**:
+   - **Universal Meta-Skills (➔ Preserve in Hot Base)**:
+     - *Scope*: Core workflow management, refactoring guidance, security/error debugging, agent orchestration, project context handoff.
+     - *Action*: Automatically register the skill name into `~/.agents/hot_skills.json` under `core_hot_skills` array.
+   - **Domain Specific / Framework Skills (➔ Consolidate to Cold Vault)**:
+     - *Scope*: Framework-specific (React/Svelte/Vue), UI component libraries (Shadcn), payment gateways (Stripe/Alipay), cloud databases (BigQuery/GCP), specialized animation tools (GSAP/Shader).
+     - *Action*: Consolidate into `~/.agents/skills_archive/` (Cold Vault) for 0-token cold storage.
+3. **Persist User Choice**: Generate/update `~/.agents/hot_skills.json` with the classified results so users have 100% transparent control to inspect or modify their Hot Base whitelist.
+
 ## Lifecycle Rules
 
 1. **`init`**: Run `npx skill-orchestrator init` to move non-core global skills into unified shared archive vault (`~/.agents/skills_archive/`).
