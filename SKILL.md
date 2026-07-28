@@ -14,13 +14,13 @@ An open, cross-platform Agent Skill that provides automated zero-base-token skil
 
 ## 📢 首轮对话自动汇报规范 (Proactive Telemetry Report Protocol)
 
-在任何新项目/新工作区中，当需求定稿或首轮技能调配完成后，AI 应当在回复末尾**自动标注技能来源与归属**（使用无冗余 Emoji 的专业卡片格式）：
+在任何新项目/新工作区中，当需求定稿或首轮技能调配完成后，AI 应当在回复末尾**自动标注技能来源与归属**（保留状态指示 Emoji 🟢/🟡）：
 
 ```text
 ------------------------------------------------------------
 [Project Skills & Token Telemetry]
 ------------------------------------------------------------
-全局热底座开销 : ~420 Tokens [Status: Healthy]
+全局热底座开销 : ~420 Tokens [Status: Healthy 🟢]
 本项目专属装载 : 
    ├── 3d-web-experience   : 450 Tokens (来源: 本地冷库 | 推断: package.json)
    ├── gsap-core           : 320 Tokens (来源: 本地冷库 | 推断: package.json)
