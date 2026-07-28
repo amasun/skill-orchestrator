@@ -1,7 +1,11 @@
 {
   "name": "skill-orchestrator",
-  "version": "3.2.9",
+  "version": "3.3.0",
   "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization (v3.2.5 Skill Hot-Sync & Auto-Update Edition)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amasun/skill-orchestrator.git"
+  },
   "main": "scripts/orchestrate.js",
   "bin": {
     "skill-orchestrator": "scripts/orchestrate.js"
