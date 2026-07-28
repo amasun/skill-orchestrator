@@ -11,20 +11,6 @@
 
 ---
 
-## 🌐 5 大云端/本地注册表级联支持表 (5-Registry Universal Engine)
-
-系统全面适配并内置实现了全网 5 大云端与本地注册表源的按需匹配与精准拉取：
-
-| 云端/本地来源 | 维护主体 | 核心差异化领域 | 自动化匹配/拉取逻辑 |
-| :--- | :--- | :--- | :--- |
-| **1. Vercel (`vercel-labs`)** | Vercel & 开源社区 | Web 前端、Next.js、UI/UX 规范 | `npx skills add <name>` |
-| **2. Upskill (`upskill.dev`)** | 安全团队 | 恶意代码防御、安全审计、合规重构 | `npx upskill add <name>` |
-| **3. 巨头官方 (`Stripe/Cloudflare`)**| 各大 Tech 巨头 | 官方 API、Serverless 边缘计算、数据库 | `npx skills add owner/repo` |
-| **4. 国内 Gitee / CDN 节点** | Gitee / jsDelivr | 国内秒级响应 (Ping < 30ms) | `npx skills add vercel-labs/skills/<name>` |
-| **5. 您的私有 GitHub 组织** | 您的团队 | 团队内部私有架构、商业护城河规范 | `npx skills add your-org/repo` |
-
----
-
 ## 📢 汇报卡触发与手动唤醒规范 (Telemetry Report Protocol)
 
 ### 唤醒/触发的四种方式：
@@ -41,14 +27,35 @@
 本项目专属装载 : 
    ├── 3d-web-experience   : 450 Tokens (来源: 本地冷库 | 推断: package.json)
    ├── gsap-core           : 320 Tokens (来源: 本地冷库 | 推断: package.json)
+   ├── ml-best-practices   : 580 Tokens (来源: 本地冷库 | 推断: requirements.txt)
    ├── web-shader-extractor: 380 Tokens (来源: 本地冷库 | 推断: 代码特征 [.glsl])
-   ├── ditther-dark-glass  : 410 Tokens (来源: 本地冷库 | 推断: 需求意图)
-   ├── solidity            : 510 Tokens (来源: Vercel云端 | 仅存项目临时目录)
+   ├── dataform-bigquery   : 410 Tokens (来源: 本地冷库 | 推断: 代码特征 [.sqlx])
+   ├── figma-swiftui       : 520 Tokens (来源: 本地冷库 | 推断: 代码特征 [.swift])
+   ├── ditther-dark-glass  : 390 Tokens (来源: 本地冷库 | 推断: 需求意图)
+   ├── upskill/sec-header  : 460 Tokens (来源: Upskill安全库 | 推断: 安全审计)
+   ├── stripe/agent-skills : 510 Tokens (来源: GitHub组织(stripe) | 推断: 依赖匹配)
+   ├── solidity            : 490 Tokens (来源: Gitee/CDN镜像 | 推断: 需求意图)
+   ├── svelte-kit          : 470 Tokens (来源: Vercel云端 | 仅存项目临时目录 | 推断: 需求意图)
+   └── custom-auth-gate    : 310 Tokens (来源: 本地微模板降级 | 推断: 离线兜底)
 ------------------------------------------------------------
-本项目总底座开销 : 2,070 Tokens (较默认全载节省 78.8% 空间)
+本项目总底座开销 : 5,710 Tokens (较默认全载节省 41.5% 空间)
 Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
 ============================================================
 ```
+
+---
+
+## 🌐 5 大云端/本地注册表级联支持表 (5-Registry Universal Engine)
+
+系统全面适配并内置实现了全网 5 大云端与本地注册表源的按需匹配与精准拉取：
+
+| 云端/本地来源 | 维护主体 | 核心差异化领域 | 自动化匹配/拉取逻辑 |
+| :--- | :--- | :--- | :--- |
+| **1. Vercel (`vercel-labs`)** | Vercel & 开源社区 | Web 前端、Next.js、UI/UX 规范 | `npx skills add <name>` |
+| **2. Upskill (`upskill.dev`)** | 安全团队 | 恶意代码防御、安全审计、合规重构 | `npx upskill add <name>` |
+| **3. 巨头官方 (`Stripe/Cloudflare`)**| 各大 Tech 巨头 | 官方 API、Serverless 边缘计算、数据库 | `npx skills add owner/repo` |
+| **4. 国内 Gitee / CDN 节点** | Gitee / jsDelivr | 国内秒级响应 (Ping < 30ms) | `npx skills add vercel-labs/skills/<name>` |
+| **5. 您的私有 GitHub 组织** | 您的团队 | 团队内部私有架构、商业护城河规范 | `npx skills add your-org/repo` |
 
 ---
 
@@ -118,6 +125,6 @@ npm run cleanup
 
 ## 变更与迭代历史 (Changelog)
 
-- **v2.2.0 (2026-07-28)**：全盘在底层代码实现 5 大云端/本地注册表源（Vercel, Upskill, GitHub Orgs, Gitee/CDN, 私有Org）的自动匹配与精准拉取。
+- **v2.2.0 (2026-07-28)**：全盘在底层代码实现 5 大云端/本地注册表源的自动匹配与精准拉取，汇报卡包含最全数据类型展示。
 - **v2.0.2 (2026-07-28)**：重构文档排版逻辑，将对话框触发指引收拢放置于开发者命令行工具之后。
 - **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块。
