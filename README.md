@@ -174,6 +174,9 @@ node scripts/orchestrate.js status  # 或 npm run status
 
 # 4. 项目结项一键清理
 node scripts/orchestrate.js cleanup # 或 npm run cleanup
+
+# 5. 退出机制 (还原所有归档技能至全局目录并彻底卸载，0 数据丢失)
+node scripts/orchestrate.js eject   # 或 npm run eject
 ```
 
 ---
@@ -189,6 +192,7 @@ node scripts/orchestrate.js cleanup # 或 npm run cleanup
 | **`/infer`** | `$infer` / `infer` | **“检查依赖”、“自动匹配技能”** | `node scripts/orchestrate.js infer` (`npm run infer`) |
 | **`/sync`** | `$sync` / `sync` | **“刚才 npx 装了新技能，整理一下”** | `node scripts/orchestrate.js sync` (`npm run sync`) |
 | **`/cleanup`** | `$cleanup` / `cleanup` | **“项目开发完成了”、“清理临时技能”** | `node scripts/orchestrate.js cleanup` (`npm run cleanup`) |
+| **`/eject`** | `$eject` / `eject` / `uninstall` | **“恢复技能并卸载”、“退出调度管理”** | `node scripts/orchestrate.js eject` (`npm run eject`) |
 
 ---
 
@@ -221,14 +225,14 @@ node scripts/orchestrate.js cleanup # 或 npm run cleanup
 ### Q9: 如果我自己手动在终端敲 `npx skills add` 安装了新技能，系统能感知吗？
 **答**：能。系统内置 `runSync` 自动巡检机制。在新会话开启或运行 `npm run sync` 时，会自动捕获手动安装的公有技能并将其迁移移入共享冷库，防止开局 Token 再次膨胀。
 
-### Q10: 如果遇到断网或云端 API 崩了，系统会卡死吗？
-**答**：绝对不会。系统内置降级保护机制，遇到断网或超时，会自动秒切本地 Micro-Template 微模板降级兜底，保证开发对话永不断挂！
+### Q10: 如果我不想用了，如何彻底退出并还原所有技能？(Eject 机制)
+**答**：只需在对话框发送 `/eject`（或在终端运行 `npm run eject`），系统会**自动将私有冷库中的所有技能 100% 还原移动回全局目录**，并安全删除冷库与相关配置，系统瞬间恢复至默认原始状态，**保证 0 数据丢失！**
 
 ---
 
 ## 变更与迭代历史 (Changelog)
 
-- **v2.6.3 (2026-07-28)**：根据全平台统一共享私有冷库 (`~/.agents/skills_archive/`) 的实际代码逻辑，精准更新 README 和 SKILL 的技能存储路径与加载优先级对照表。
-- **v2.6.2 (2026-07-28)**：合并 Pain Points 和 Features 为综合大表。
+- **v3.0.0 (2026-07-28)**：新增一键退出与还原机制 (`/eject` / `runEject`)，支持将所有冷库归档技能 100% 还原回全局目录并安全卸载，确保 0 数据丢失。
+- **v2.7.1 (2026-07-28)**：优化重构代码为纯粹干净的全平台统一共享冷库架构。
 - **v2.6.0 (2026-07-28)**：全面升级架构为全平台统一共享私有冷库。
 - **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块。

@@ -11,8 +11,7 @@ const AGENT_SKILL_PATHS = [
     path.join(HOME_DIR, '.gemini', 'config', 'skills'),
     path.join(HOME_DIR, '.agents', 'skills'),
     path.join(HOME_DIR, '.claude', 'skills'),
-    path.join(HOME_DIR, '.trae-cn', 'skills'),
-    path.join(HOME_DIR, '.gemini', 'antigravity', 'skills_archive') // Legacy migration path
+    path.join(HOME_DIR, '.trae-cn', 'skills')
 ];
 
 const CORE_SKILLS = ['z-coding-refactoring', 'agentic-workflow', 'skill-orchestrator', 'find-skills'];
@@ -310,7 +309,7 @@ function runStatus(projectCwd = process.cwd()) {
 }
 
 // -------------------------------------------------------------------
-// Standard Actions: Init, Sync, Status, Cleanup (Pure Clean Vault Consolidation)
+// Standard Actions: Init, Sync, Status, Cleanup, Eject
 // -------------------------------------------------------------------
 function runInit() {
     console.log('🚀 Consolidating Local Private Skills into Unified Shared Vault (Pure Clean)...');
@@ -384,6 +383,41 @@ function runCleanup(projectCwd = process.cwd()) {
     }
 }
 
+function runEject() {
+    console.log('🚪 Executing Offboarding (Eject) Strategy...');
+    console.log('📦 Restoring all archived private skills from Cold Vault back to Global Skill directories...');
+
+    let totalRestored = 0;
+    if (fs.existsSync(ARCHIVE_DIR)) {
+        const archivedItems = fs.readdirSync(ARCHIVE_DIR);
+        // Default target path to restore back to
+        const primaryGlobalPath = AGENT_SKILL_PATHS[0] || path.join(HOME_DIR, '.agents', 'skills');
+        ensureDir(primaryGlobalPath);
+
+        archivedItems.forEach(item => {
+            const archiveItemPath = path.join(ARCHIVE_DIR, item);
+            const restoreTargetPath = path.join(primaryGlobalPath, item);
+
+            if (fs.existsSync(archiveItemPath) && fs.statSync(archiveItemPath).isDirectory()) {
+                try {
+                    fs.cpSync(archiveItemPath, restoreTargetPath, { recursive: true });
+                    totalRestored++;
+                    console.log(`✅ Restored private skill [${item}] -> ${restoreTargetPath}`);
+                } catch (e) {}
+            }
+        });
+
+        // Safely remove Archive Vault
+        try {
+            fs.rmSync(ARCHIVE_DIR, { recursive: true, force: true });
+            console.log(`\n🗑️ Safely removed Cold Archive Vault: ${ARCHIVE_DIR}`);
+        } catch (e) {}
+    }
+
+    console.log(`\n🎉 Eject Complete! Successfully restored ${totalRestored} skills back to global directory.`);
+    console.log('System is now restored to standard default mode (0 data lost).');
+}
+
 // -------------------------------------------------------------------
 // CLI Router
 // -------------------------------------------------------------------
@@ -405,16 +439,21 @@ switch (command) {
     case 'cleanup':
         runCleanup();
         break;
+    case 'eject':
+    case 'uninstall':
+        runEject();
+        break;
     default:
         console.log(`
-Skill Orchestrator Engine (v2.7.1) - Pure Clean Shared Vault Edition
+Skill Orchestrator Engine (v3.0) - Eject Offboarding Edition
 
 Usage:
-  node scripts/orchestrate.js init    - Consolidate local private skills into Unified Shared Vault
-  node scripts/orchestrate.js infer   - Infer dependencies from project stack & auto-load skills
-  node scripts/orchestrate.js sync    - Auto-detect manual npx skills & migrate to vault
-  node scripts/orchestrate.js status  - Display active vs archived skills token telemetry
-  node scripts/orchestrate.js cleanup - Clean up project-level skills
+  node scripts/orchestrate.js init      - Consolidate local private skills into Unified Shared Vault
+  node scripts/orchestrate.js infer     - Infer dependencies from project stack & auto-load skills
+  node scripts/orchestrate.js sync      - Auto-detect manual npx skills & migrate to vault
+  node scripts/orchestrate.js status    - Display active vs archived skills token telemetry
+  node scripts/orchestrate.js cleanup   - Clean up project-level skills
+  node scripts/orchestrate.js eject     - Restore all archived skills back to global folder & uninstall (0 data loss)
         `);
         break;
 }

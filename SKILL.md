@@ -3,8 +3,8 @@ name: skill-orchestrator
 description: >
   Dynamic Project Skill Orchestrator. Minimizes global base token overhead by maintaining
   a unified shared cold archive vault and dynamically matching, copying, and managing project-level skills
-  throughout the project lifecycle (Init -> Requirements Alignment -> Single-Directional Addition -> Final Cleanup).
-  Activate when user asks to manage skills, infer dependencies, check token status, or run slash commands (/status, /infer, /init, /sync, /cleanup).
+  throughout the project lifecycle (Init -> Requirements Alignment -> Single-Directional Addition -> Final Cleanup -> Eject Offboarding).
+  Activate when user asks to manage skills, infer dependencies, check token status, or run slash commands (/status, /infer, /init, /sync, /cleanup, /eject).
 ---
 
 # Skill Orchestrator Engine
@@ -20,6 +20,7 @@ AI Agent execution rules for dynamic skill orchestration and zero-base-token opt
 | `/infer`, `$infer`, `infer`, "Auto Match Skills/Infer Dependencies" | `node scripts/orchestrate.js infer` |
 | `/sync`, `$sync`, `sync`, "Sync New Skills/Organize Cold Archive" | `node scripts/orchestrate.js sync` |
 | `/cleanup`, `$cleanup`, `cleanup`, "Clean Up Project Skills" | `node scripts/orchestrate.js cleanup` |
+| `/eject`, `$eject`, `eject`, `uninstall`, "Restore Skills & Uninstall" | `node scripts/orchestrate.js eject` |
 
 ## Resolution Priority
 
@@ -57,3 +58,4 @@ Prompt Cache Anchor          : Injected (4x Speedup)
 2. **`infer`**: Run `node scripts/orchestrate.js infer` when project scope locks or dependencies change. Print Telemetry Report.
 3. **`sync`**: Run `node scripts/orchestrate.js sync` to capture manual `npx` skills into unified shared archive vault.
 4. **`cleanup`**: Run `node scripts/orchestrate.js cleanup` upon project completion.
+5. **`eject`**: Run `node scripts/orchestrate.js eject` to restore all archived skills back to global directory and uninstall cleanly (0 data loss).

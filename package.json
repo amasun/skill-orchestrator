@@ -1,7 +1,7 @@
 {
   "name": "skill-orchestrator",
-  "version": "2.6.3",
-  "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization (v2.6 Unified Shared Cold Archive Edition)",
+  "version": "3.0.0",
+  "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization (v3.0 Eject Offboarding Edition)",
   "main": "scripts/orchestrate.js",
   "bin": {
     "skill-orchestrator": "scripts/orchestrate.js"
@@ -17,7 +17,8 @@
     "sync": "node scripts/orchestrate.js sync",
     "infer": "node scripts/orchestrate.js infer",
     "status": "node scripts/orchestrate.js status",
-    "cleanup": "node scripts/orchestrate.js cleanup"
+    "cleanup": "node scripts/orchestrate.js cleanup",
+    "eject": "node scripts/orchestrate.js eject"
   },
   "keywords": [
     "agent-skills",
