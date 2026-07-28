@@ -21,9 +21,9 @@ function ensureDir(dir) {
     }
 }
 
-// 1. Consolidated Local Skill Archiving across ALL installed Agents
+// 1. Consolidated Local Skill Archiving across ALL installed Agents (User-owned local assets ONLY)
 function runInit() {
-    console.log('🚀 Consolidating Local Skills across all Agents into Vault...');
+    console.log('🚀 Consolidating Local Private Skills across all Agents into Vault...');
     ensureDir(ARCHIVE_DIR);
 
     let totalConsolidated = 0;
@@ -40,7 +40,7 @@ function runInit() {
                             fs.cpSync(fullPath, targetPath, { recursive: true });
                             fs.rmSync(fullPath, { recursive: true, force: true });
                             totalConsolidated++;
-                            console.log(`📦 Consolidated [${item}] from ${path.basename(agentPath)} -> Archive Vault`);
+                            console.log(`📦 Consolidated private asset [${item}] from ${path.basename(agentPath)} -> Archive Vault`);
                         } catch (e) {
                             // Skip locked files
                         }
@@ -50,29 +50,29 @@ function runInit() {
         }
     });
 
-    console.log(`\n✅ Consolidated ${totalConsolidated} local skills into archive vault: ${ARCHIVE_DIR}`);
+    console.log(`\n✅ Consolidated ${totalConsolidated} local private skills into archive vault: ${ARCHIVE_DIR}`);
     console.log('🎉 Global Base Tokens overhead successfully reduced by 90%+!');
 }
 
-// 2. Cascade Fetch: 1st Local Archive Vault -> 2nd Vercel Cloud Registry
+// 2. Cascade Fetch: 1st Local Archive Vault -> 2nd Vercel Cloud Registry (Project-Scoped Only)
 function fetchSkill(skillName, projectCwd = process.cwd()) {
     const localArchivePath = path.join(ARCHIVE_DIR, skillName);
     const projectSkillsDir = path.join(projectCwd, '.agents', 'skills');
     ensureDir(projectSkillsDir);
     const projectTargetPath = path.join(projectSkillsDir, skillName);
 
-    // Hit 1: Local Cold Vault
+    // Path A: Hit Local Private Vault (User Curated Private Asset)
     if (fs.existsSync(localArchivePath)) {
-        console.log(`🎯 Hit Local Vault: Copying [${skillName}] -> Project .agents/skills/`);
+        console.log(`🎯 Hit Local Private Vault: Copying [${skillName}] -> Project .agents/skills/`);
         fs.cpSync(localArchivePath, projectTargetPath, { recursive: true });
         return true;
     }
 
-    // Hit 2: Vercel Cloud Registry
-    console.log(`☁️ Local Vault Missed: Pulling [${skillName}] from Vercel Cloud Registry...`);
+    // Path B: Hit Vercel Cloud Registry (Temporary Project Dependency ONLY - DO NOT pollute Private Vault)
+    console.log(`☁️ Pulling temporary project skill [${skillName}] from Vercel Cloud Registry...`);
     try {
         execSync(`npx -y skills add ${skillName}`, { cwd: projectCwd, stdio: 'inherit' });
-        console.log(`✅ Successfully pulled [${skillName}] from Vercel Cloud Registry into project!`);
+        console.log(`✅ Successfully pulled [${skillName}] into project scope ONLY! (Private Vault remains 100% clean)`);
         return true;
     } catch (err) {
         console.error(`❌ Failed to pull [${skillName}] from Vercel Cloud Registry.`);
@@ -87,14 +87,14 @@ function runStatus() {
         ? fs.readdirSync(ARCHIVE_DIR).filter(f => fs.statSync(path.join(ARCHIVE_DIR, f)).isDirectory())
         : [];
 
-    console.log(`\n📦 Archived Cold Skills (${archivedSkills.length}):`, archivedSkills);
+    console.log(`\n📦 User Private Curated Skills in Vault (${archivedSkills.length}):`, archivedSkills);
 }
 
 function runCleanup(projectCwd = process.cwd()) {
     const projectSkillsDir = path.join(projectCwd, '.agents', 'skills');
     if (fs.existsSync(projectSkillsDir)) {
         fs.rmSync(projectSkillsDir, { recursive: true, force: true });
-        console.log(`🧹 Cleaned project skills at: ${projectSkillsDir}`);
+        console.log(`🧹 Cleaned temporary project skills at: ${projectSkillsDir}`);
     } else {
         console.log(`ℹ️ No project skills found at: ${projectSkillsDir}`);
     }
