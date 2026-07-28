@@ -12,6 +12,17 @@ An open, cross-platform Agent Skill that provides automated zero-base-token skil
 
 ---
 
+## 📂 技能存储路径与加载优先级对照表 (Directory Paths & Priorities)
+
+| 目录路径 (Directory Path) | 目录角色与定位 | 加载与匹配优先级 | Token 空间影响 | 生命周期与清理 |
+| :--- | :--- | :---: | :---: | :--- |
+| **`<项目根目录>/.agents/skills/`** | **本项目专属动态技能目录** (Project Scope) | **第 1 优先级** (优先复用当前项目内已装载技能) | 仅在当前项目占用 (~300-500 Tokens) | 项目结项使用 `/cleanup` 一键清理 |
+| **`~/.gemini/antigravity/skills_archive/`** | **本地私有冷归档库** (Local Cold Archive Vault) | **第 2 优先级** (命中即 0ms 复制入项目，截断网络) | **0 Tokens** (完全冷冻，开局 0 占用) | 永久私有保存，绝对不随项目清理 |
+| **`~/.gemini/config/skills/`** | **全局热底座目录** (Hot Core Base) | **第 3 优先级** (仅常驻 2-3 个通用核心 Skill) | 保持极低开销 (&le; 500 Tokens) | 常驻热加载 |
+| **`~/.agents/skills/`**<br>**`~/.claude/skills/`**<br>**`~/.trae-cn/skills/`** | **各 IDE / Agent 全局公共目录** (Public Skill Folders) | **自动巡检捕获** (检测用户手动 `npx` 安装的新技能) | 触发 `runSync` 后恢复极简 | 巡检捕获后自动迁移移入 `skills_archive/` |
+
+---
+
 ## 首轮对话与手动唤醒汇报规范 (Proactive & Manual Telemetry Report Protocol)
 
 ### 唤醒方式：
