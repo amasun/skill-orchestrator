@@ -12,9 +12,12 @@ An open, cross-platform Agent Skill that provides automated zero-base-token skil
 
 ---
 
-## 📢 首轮对话自动汇报规范 (Proactive Telemetry Report Protocol)
+## 📢 首轮对话与手动唤醒汇报规范 (Proactive & Manual Telemetry Report Protocol)
 
-在任何新项目/新工作区中，当需求定稿或首轮技能调配完成后，AI 应当在回复末尾**自动标注技能来源与归属**（保留状态指示 Emoji 🟢/🟡）：
+### 唤醒方式：
+1. **自动触发**：新项目需求定稿 / 中途新增大模块技能时，AI 自动在回复末尾呈现。
+2. **自然语言唤醒**：对 AI 说“查看 Token 占用”、“技能诊断”、“当前项目装了哪些技能”。
+3. **命令行唤醒（开发者备用）**：在项目终端运行 `npm run telemetry` 或 `npm run status`。
 
 ```text
 ------------------------------------------------------------
@@ -33,26 +36,17 @@ Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
 ============================================================
 ```
 
-### 5 大技能推断来源分类 (Inference Source Categories)
-1. **`推断: package.json`**：JavaScript / Node 前端依赖
-2. **`推断: requirements.txt` / `Cargo.toml` / `go.mod`**：Python / Rust / Go 等后端依赖
-3. **`推断: 代码特征 [.glsl / .sqlx]`**：扫描到特定扩展名的代码特征文件
-4. **`推断: 需求意图`**：通过与人类沟通的产品文档与聊天语义理解
-5. **`推断: 用户指定`**：用户显式输入 `$技能名` 唤醒
-
 ---
 
-## 🗣️ 自然语言触发指引 (Natural Language Triggers)
+## 🗣️ 自然语言与命令行触发指引 (Triggers & Commands)
 
-用户不需要记忆任何 CLI 命令行，AI 应当根据用户的自然语言意图，在后台自动执行对应的脚本工具：
-
-| 用户自然语言表述 | 后台自动执行命令 | 作用 |
+| 自然语言表述（推荐） | 命令行对应指令（开发者） | 作用与效果 |
 | :--- | :--- | :--- |
-| **“初始化技能库”** / **“清空开局 Token 占用”** | `node scripts/orchestrate.js init` | 建立私有冷库，瞬间释放全局 90%+ 占用 |
-| **“检查代码依赖需要什么技能”** / **“自动匹配技能”** | `node scripts/orchestrate.js infer` | 自动扫描项目代码依赖，零沟通精准装载技能 |
-| **“刚才在终端 npx 装了新技能，整理一下”** / **“巡检技能”** | `node scripts/orchestrate.js sync` | 捕获手动安装的新技能并静默归档至冷库 |
-| **“查看 Token 占用状态”** / **“技能诊断”** | `node scripts/orchestrate.js telemetry` | 打印可视化的 Token 仪表盘与健康度报告 |
-| **“项目开发完成了”** / **“清理临时技能”** | `node scripts/orchestrate.js cleanup` | 项目结项，一键清理项目局部临时技能 |
+| **“初始化技能库”** / **“清空开局 Token 占用”** | `npm run init` | 建立私有冷库，瞬间释放全局 90%+ 占用 |
+| **“检查代码依赖需要什么技能”** / **“自动匹配技能”** | `npm run infer` | 自动扫描项目代码依赖，零沟通精准装载技能 |
+| **“刚才在终端 npx 装了新技能，整理一下”** / **“巡检技能”** | `npm run sync` | 捕获手动安装的新技能并静默归档至冷库 |
+| **“查看 Token 占用状态”** / **“技能诊断”** | `npm run telemetry` / `npm run status` | 打印可视化的 Token 仪表盘与健康度汇报卡 |
+| **“项目开发完成了”** / **“清理临时技能”** | `npm run cleanup` | 项目结项，一键清理项目局部临时技能 |
 
 ---
 
@@ -82,4 +76,4 @@ When this skill is active, the AI Agent adheres to the following lifecycle workf
 - `node scripts/orchestrate.js infer` - Scan package.json/project files and infer dependency skills.
 - `node scripts/orchestrate.js sync` - Auto-detect manually added npx skills and migrate to archive.
 - `node scripts/orchestrate.js cleanup` - Clean project-level skills upon completion.
-- `node scripts/orchestrate.js telemetry` - Display active vs archived skills token status.
+- `node scripts/orchestrate.js telemetry` - Display active vs archived skills token status dashboard.
