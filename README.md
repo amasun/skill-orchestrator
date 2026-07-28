@@ -6,12 +6,12 @@
 
 ## 架构背景与核心痛点 (Background & Pain Points)
 
-在传统模式下，所有的 AI Agent 技能（Skills）都会在开局对话中被一次性预加载，这导致了极大的上下文浪费。
+在传统模式下，所有的 AI Agent 技能（Skills）都会在开局对话中被一次性预加载，这导致了极大的上下文浪费与资产碎片化。
 
 | 痛点问题 | 传统模式 (All Preloaded) | 本策略架构 (全平台统一共享冷库架构) |
 | :--- | :--- | :--- |
 | **开局 Token 占用** | ~9,757 Tokens (占用近 50% 预算槽) | **~0 - 500 Tokens** (节省 95%+) |
-| **私有冷库共享** | 各 IDE 工具相互隔离重复存储 | **全平台统一共享冷库** (`~/.agents/skills_archive/` 一次积累全端生效) |
+| **私有技能碎片化** | 各 Agent / IDE 工具目录独立分散、重复存储 | **全平台统一共享冷库** (`~/.agents/skills_archive/` 一次积累全端生效) |
 | **技能推断维度** | 依赖人类口头语言描述与 LLM 语义猜测 | **代码层 5 维自动推断** (扫 `package.json`/配置文件/代码后缀 + 语义) |
 | **云端源覆盖度** | 单一依赖 Vercel 注册表 | **全网多云端源级联支持** (Vercel, Upskill, GitHub Orgs, CDN, 私有Org) |
 | **响应速度与费用** | 每轮对话重复计算 10k Token 提示词 | **Prompt Cache 缓存锚点** (闪电提速 4x，费用降低 90%) |
@@ -35,7 +35,7 @@
 ## 本 Skill 功能特点 (What This Skill Can Do)
 
 1. **0 开局底座 Token 空间释放**：通过建立全平台统一共享私有冷库 (`~/.agents/skills_archive/`)，将开局预载开销从 9,757 压降至 500 Tokens 以内（降低 95%+）。
-2. **全平台统一共享资产库**：在 Antigravity、Trae、Claude Code 或 Cursor 中积累的私有技能，跨工具 0ms 无缝共享复用！
+2. **全平台统一共享私有冷库**：自动建立跨 Agent / IDE 统一共享冷库 (`~/.agents/skills_archive/`)，在 Antigravity、Trae、Claude Code 或 Cursor 中积累的私有技能，全端 0ms 极速共享复用！
 3. **分优先级按需调度装载**：严格按优先级（项目目录 > 共享冷库 > 云端库）调度，本项目所需技能精准拉取并收拢在当前项目目录（`./.agents/skills/`）中，资源与状态一目了然！
 4. **零沟通代码依赖自动推断**：自动扫描项目代码（`package.json` / `requirements.txt` / `.glsl` / `.swift`），零沟通自动匹配并装载对应技能。
 5. **全网多云端源与本地注册表无缝级联**：支持 Vercel、Upskill 安全库、GitHub 官方组织仓库 (`owner/repo`)、国内极速 CDN 及团队私有库。
@@ -239,6 +239,7 @@ node scripts/orchestrate.js cleanup # 或 npm run cleanup
 
 ## 变更与迭代历史 (Changelog)
 
-- **v2.6.0 (2026-07-28)**：全面升级架构为全平台统一共享私有冷库 (`~/.agents/skills_archive/`)，实现 Antigravity、Trae、Claude Code、Cursor 跨工具 0ms 资产复用与自动迁移。
+- **v2.6.1 (2026-07-28)**：在 README 痛点表格中增加“私有技能碎片化”条目，并在功能特点中突出“全平台统一共享私有冷库”的跨 IDE 无缝复用能力。
+- **v2.6.0 (2026-07-28)**：全面升级架构为全平台统一共享私有冷库 (`~/.agents/skills_archive/`)。
 - **v2.5.0 (2026-07-28)**：新增整合 5 维多源自动推断逻辑章节。
 - **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块。
