@@ -192,18 +192,32 @@ sudo apt-get update -y && sudo apt-get install -y nodejs npm
 
 ---
 
-## ⚙️ User-Customized Base Skills Whitelist (`~/.agents/base_skills.json`)
+## ⚙️ Unified Twin Machine Engine Database (`~/.agents/so_skills_registry.json`)
 
-The orchestrator maintains a whitelist configuration at `~/.agents/base_skills.json` to keep essential universal meta-skills preloaded:
+The orchestrator maintains a single machine database at `~/.agents/so_skills_registry.json` (v2.1.0 Homogeneous Skill Architecture) managing both Core Base Skills (`core_base_skills`) and Cold Vault Skills (`category: "base" | "vault"`):
 
 ```json
 {
   "version": "2.1.0",
+  "updatedAt": "2026-07-28T18:29:29.341Z",
   "core_base_skills": [
     "agentic-workflow",
     "find-skills",
     "z-coding-refactoring",
     "skill-orchestrator"
-  ]
+  ],
+  "skills": {
+    "skill-orchestrator": {
+      "category": "base",
+      "status": "active",
+      "purpose": "Zero-token skill orchestrator & multi-source ecosystem engine",
+      "description": "Zero-token skill orchestrator & multi-source ecosystem engine...",
+      "tokens": 2800,
+      "origins": [
+        "C:\\Users\\Amasun-PC\\.gemini\\config\\skills\\skill-orchestrator",
+        "C:\\Users\\Amasun-PC\\.agents\\skills\\skill-orchestrator"
+      ]
+    }
+  }
 }
 ```

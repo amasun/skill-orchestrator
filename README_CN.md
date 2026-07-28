@@ -192,18 +192,32 @@ sudo apt-get update -y && sudo apt-get install -y nodejs npm
 
 ---
 
-## ⚙️ 用户自定义底层基础技能配置 (`~/.agents/base_skills.json`)
+## ⚙️ 统一双轨机器引擎数据库 (`~/.agents/so_skills_registry.json`)
 
-系统在 `~/.agents/base_skills.json` 维护白名单，全时段保留少量通用元技能：
+系统在用户全局目录维系唯一的机器数据库 `~/.agents/so_skills_registry.json` (v2.1.0 同质化技能架构)，统一管理常驻热底座 (`core_base_skills`) 与冷库归档技能 (`category: "base" | "vault"`)：
 
 ```json
 {
   "version": "2.1.0",
+  "updatedAt": "2026-07-28T18:29:29.341Z",
   "core_base_skills": [
     "agentic-workflow",
     "find-skills",
     "z-coding-refactoring",
     "skill-orchestrator"
-  ]
+  ],
+  "skills": {
+    "skill-orchestrator": {
+      "category": "base",
+      "status": "active",
+      "purpose": "Zero-token skill orchestrator & multi-source ecosystem engine",
+      "description": "Zero-token skill orchestrator & multi-source ecosystem engine...",
+      "tokens": 2800,
+      "origins": [
+        "C:\\Users\\Amasun-PC\\.gemini\\config\\skills\\skill-orchestrator",
+        "C:\\Users\\Amasun-PC\\.agents\\skills\\skill-orchestrator"
+      ]
+    }
+  }
 }
 ```
