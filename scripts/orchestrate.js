@@ -1,11 +1,19 @@
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const HOME_DIR = process.env.USERPROFILE || process.env.HOME;
-const GLOBAL_SKILLS_DIR = path.join(HOME_DIR, '.gemini', 'config', 'skills');
 const ARCHIVE_DIR = path.join(HOME_DIR, '.gemini', 'antigravity', 'skills_archive');
 
-const CORE_SKILLS = ['z-coding-refactoring', 'agentic-workflow', 'skill-orchestrator'];
+// Well-known Agent skill directories across different platforms (Antigravity, Claude, Trae, Universal)
+const AGENT_SKILL_PATHS = [
+    path.join(HOME_DIR, '.gemini', 'config', 'skills'),
+    path.join(HOME_DIR, '.agents', 'skills'),
+    path.join(HOME_DIR, '.claude', 'skills'),
+    path.join(HOME_DIR, '.trae-cn', 'skills')
+];
+
+const CORE_SKILLS = ['z-coding-refactoring', 'agentic-workflow', 'skill-orchestrator', 'find-skills'];
 
 function ensureDir(dir) {
     if (!fs.existsSync(dir)) {
@@ -13,46 +21,73 @@ function ensureDir(dir) {
     }
 }
 
+// 1. Consolidated Local Skill Archiving across ALL installed Agents
 function runInit() {
-    console.log('🚀 Initializing Skill Orchestrator Archive Vault...');
+    console.log('🚀 Consolidating Local Skills across all Agents into Vault...');
     ensureDir(ARCHIVE_DIR);
-    ensureDir(GLOBAL_SKILLS_DIR);
 
-    const items = fs.readdirSync(GLOBAL_SKILLS_DIR);
-    let movedCount = 0;
+    let totalConsolidated = 0;
 
-    items.forEach(item => {
-        const fullPath = path.join(GLOBAL_SKILLS_DIR, item);
-        if (fs.statSync(fullPath).isDirectory()) {
-            if (!CORE_SKILLS.includes(item)) {
-                const targetPath = path.join(ARCHIVE_DIR, item);
-                if (fs.existsSync(targetPath)) {
-                    fs.rmSync(targetPath, { recursive: true, force: true });
+    AGENT_SKILL_PATHS.forEach(agentPath => {
+        if (fs.existsSync(agentPath)) {
+            const items = fs.readdirSync(agentPath);
+            items.forEach(item => {
+                const fullPath = path.join(agentPath, item);
+                if (fs.statSync(fullPath).isDirectory() && !CORE_SKILLS.includes(item)) {
+                    const targetPath = path.join(ARCHIVE_DIR, item);
+                    if (!fs.existsSync(targetPath)) {
+                        try {
+                            fs.cpSync(fullPath, targetPath, { recursive: true });
+                            fs.rmSync(fullPath, { recursive: true, force: true });
+                            totalConsolidated++;
+                            console.log(`📦 Consolidated [${item}] from ${path.basename(agentPath)} -> Archive Vault`);
+                        } catch (e) {
+                            // Skip locked files
+                        }
+                    }
                 }
-                fs.renameSync(fullPath, targetPath);
-                movedCount++;
-            }
+            });
         }
     });
 
-    console.log(`✅ Moved ${movedCount} skills into cold archive (${ARCHIVE_DIR}).`);
-    console.log(`🔥 Kept core skills: ${CORE_SKILLS.join(', ')}.`);
-    console.log('🎉 Global Base Token overhead successfully reduced by 90%+!');
+    console.log(`\n✅ Consolidated ${totalConsolidated} local skills into archive vault: ${ARCHIVE_DIR}`);
+    console.log('🎉 Global Base Tokens overhead successfully reduced by 90%+!');
+}
+
+// 2. Cascade Fetch: 1st Local Archive Vault -> 2nd Vercel Cloud Registry
+function fetchSkill(skillName, projectCwd = process.cwd()) {
+    const localArchivePath = path.join(ARCHIVE_DIR, skillName);
+    const projectSkillsDir = path.join(projectCwd, '.agents', 'skills');
+    ensureDir(projectSkillsDir);
+    const projectTargetPath = path.join(projectSkillsDir, skillName);
+
+    // Hit 1: Local Cold Vault
+    if (fs.existsSync(localArchivePath)) {
+        console.log(`🎯 Hit Local Vault: Copying [${skillName}] -> Project .agents/skills/`);
+        fs.cpSync(localArchivePath, projectTargetPath, { recursive: true });
+        return true;
+    }
+
+    // Hit 2: Vercel Cloud Registry
+    console.log(`☁️ Local Vault Missed: Pulling [${skillName}] from Vercel Cloud Registry...`);
+    try {
+        execSync(`npx -y skills add ${skillName}`, { cwd: projectCwd, stdio: 'inherit' });
+        console.log(`✅ Successfully pulled [${skillName}] from Vercel Cloud Registry into project!`);
+        return true;
+    } catch (err) {
+        console.error(`❌ Failed to pull [${skillName}] from Vercel Cloud Registry.`);
+        return false;
+    }
 }
 
 function runStatus() {
     console.log('📊 Skill Orchestrator Status Report:');
     
-    const globalSkills = fs.existsSync(GLOBAL_SKILLS_DIR) 
-        ? fs.readdirSync(GLOBAL_SKILLS_DIR).filter(f => fs.statSync(path.join(GLOBAL_SKILLS_DIR, f)).isDirectory())
-        : [];
-
     const archivedSkills = fs.existsSync(ARCHIVE_DIR)
         ? fs.readdirSync(ARCHIVE_DIR).filter(f => fs.statSync(path.join(ARCHIVE_DIR, f)).isDirectory())
         : [];
 
-    console.log(`\n🔥 Active Global Skills (${globalSkills.length}):`, globalSkills);
-    console.log(`📦 Archived Cold Skills (${archivedSkills.length}):`, archivedSkills);
+    console.log(`\n📦 Archived Cold Skills (${archivedSkills.length}):`, archivedSkills);
 }
 
 function runCleanup(projectCwd = process.cwd()) {
@@ -66,10 +101,18 @@ function runCleanup(projectCwd = process.cwd()) {
 }
 
 const command = process.argv[2] || 'status';
+const targetArg = process.argv[3];
 
 switch (command) {
     case 'init':
         runInit();
+        break;
+    case 'fetch':
+        if (targetArg) {
+            fetchSkill(targetArg);
+        } else {
+            console.log('Usage: node orchestrate.js fetch <skill-name>');
+        }
         break;
     case 'status':
         runStatus();
@@ -79,5 +122,5 @@ switch (command) {
         break;
     default:
         console.log(`Unknown command: ${command}`);
-        console.log('Usage: node orchestrate.js [init|status|cleanup]');
+        console.log('Usage: node orchestrate.js [init|fetch|status|cleanup]');
 }
