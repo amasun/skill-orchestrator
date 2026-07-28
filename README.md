@@ -1,88 +1,78 @@
 # Skill Orchestrator
 
-> 面向 AI Coding Agent 的多源技能动态推断、按需装载与 0 开局 Token 调度引擎。
+> Multi-source dynamic inference, on-demand loading, and zero-base-token scheduling engine for AI Coding Agents.
+
+[English](README.md) | [简体中文](README_CN.md)
 
 ---
 
-## 🔥 核心痛点与功能特点 (Pain Points & Core Capabilities)
+## 🔥 Pain Points & Core Capabilities
 
-在传统模式下，所有的 AI Agent 技能（Skills）都会在开局对话中被一次性预加载，导致极其严重的上下文浪费与私有资产碎片化。`skill-orchestrator` 通过建立全平台统一共享冷库与代码级动态推断，彻底解决了这一问题：
+In traditional setups, all AI Agent Skills are preloaded into the context window at the start of every chat session. This leads to massive token waste and fragmented private assets across different IDEs. `skill-orchestrator` solves this by introducing a **Unified Shared Cold Archive Vault** and **AST/Code-level Dynamic Inference**:
 
-| 痛点问题 (Pain Point) | 传统模式 (All Preloaded) | 本策略架构 (Skill Orchestrator) | 核心功能特点 (Key Capability) |
+| Pain Point | Traditional Mode (All Preloaded) | Skill Orchestrator Architecture | Key Capability |
 | :--- | :--- | :--- | :--- |
-| **开局 Token 占用** | ~9,757 Tokens (占用近 50% 预算槽) | **~0 - 500 Tokens** (降低 95%+) | **0 开局底座空间释放**：极简热底座与本地私有冷库隔离 |
-| **私有技能碎片化** | 各 Agent / IDE 目录独立分散、重复拷贝 | **全平台统一共享冷库** (`~/.agents/skills_archive/`) | **全平台统一资产库**：在 Antigravity/Trae/Claude 全端 0ms 共享 |
-| **技能调度与收拢** | 全局污染，项目间乱拉乱装 | **分优先级按需调度装载** (项目 > 共享冷库 > 云端) | **项目局部精准收拢**：所有项目技能精准收拢在 `./.agents/skills/` |
-| **技能推断维度** | 依赖人类口语描述与 LLM 语义猜测 | **代码层 5 维自动推断** (扫 `package.json`/后缀/意图) | **零沟通代码依赖推断**：自动扫配置文件与 `.glsl`/`.swift` 等后缀 |
-| **云端源覆盖度** | 单一依赖 Vercel 注册表 | **全网多云端源级联支持** (Vercel, Upskill, Orgs, CDN) | **全网注册表级联**：支持 Vercel / Upskill / GitHub / 国内 CDN |
-| **响应速度与费用** | 每轮对话重复计算 10k Token 提示词 | **Prompt Cache 缓存锚点** (闪电提速 4x，费用降 90%) | **Prompt Cache 缓存注入**：自动注入 `<!-- @cache-control -->` 锚点 |
-| **可观察性与监控** | 无法感知技能占用的具体 Token 权重 | **Token Telemetry 诊断仪表盘** (健康度柱状卡片) | **透明 Token 汇报卡**：随时使用 `/status` 查看健康卡片与来源追溯 |
+| **Base Token Overhead** | ~9,757 Tokens (wastes ~50% context) | **~0 - 500 Tokens** (95%+ reduction) | **Zero-Base Token Footprint**: Hot core base isolated from cold archive |
+| **Private Asset Fragmentation** | Dispersed across IDE folders (.claude, .trae, .cursor) | **Unified Shared Cold Vault** (`~/.agents/skills_archive/`) | **Cross-IDE Asset Sharing**: 0ms instant sharing across Antigravity, Trae & Claude Code |
+| **Skill Pollution & Scope** | Global pollution, chaotic auto-installs | **Priority-Based On-Demand Loading** (Project > Cold Vault > Cloud) | **Project Local Isolation**: All active project skills isolated under `./.agents/skills/` |
+| **Inference Dimension** | Relies on LLM semantic guessing & human prompts | **5-Layer Code-Level Auto Inference** (package.json / extensions / intent) | **Zero-Prompt Code Matching**: Auto-scans config files & extensions like `.glsl`, `.swift` |
+| **Cloud Registry Reach** | Relies solely on Vercel Registry | **Multi-Registry Cascade Resolution** (Vercel, Upskill, GitHub Orgs, CDN) | **Universal Multi-Registry Engine**: Full support for Vercel, Upskill, GitHub Orgs & CDN |
+| **Latency & API Costs** | Re-calculates 10k token prompts every turn | **Prompt Cache Control Anchors** (4x Speedup, 90% Cost Reduction) | **Prompt Cache Injection**: Auto-injects `<!-- @cache-control: ephemeral -->` anchors |
+| **Observability** | Zero visibility into token weight per skill | **Token Telemetry Diagnostic Dashboard** (Health Status Cards) | **Transparent Telemetry Report**: Check precise token usage anytime via `/status` |
 
 ---
 
-## 📂 技能存储路径与加载优先级对照表 (Directory Paths & Priorities)
+## 📂 Directory Paths & Priority Resolution Matrix
 
-使用本插件后，技能资产在磁盘上的分布定位与优先级匹配关系如下：
+The matrix below illustrates the location, role, and loading priority of skill assets:
 
-| 目录路径 (Directory Path) | 目录角色与定位 | 加载与匹配优先级 | Token 空间影响 | 生命周期与清理 |
+| Directory Path | Role & Location | Priority & Resolution | Token Impact | Lifecycle & Cleanup |
 | :--- | :--- | :---: | :---: | :--- |
-| **`<项目根目录>/.agents/skills/`** | **本项目专属动态技能目录** (Project Scope) | **第 1 优先级** (优先复用当前项目内已装载技能) | 仅在当前项目占用 (~300-500 Tokens) | 项目结项使用 `/cleanup` 一键清理 |
-| **`~/.agents/skills_archive/`** | **全平台统一共享私有冷库** (Unified Shared Cold Vault) | **第 2 优先级** (命中即 0ms 复制入项目，跨 IDE 全端共享) | **0 Tokens** (完全冷冻，开局 0 占用) | 永久私有保存，绝对不随项目清理 |
-| **`~/.<ide-or-agent>/skills/`** | **当前 IDE / Agent 全局热底座目录** (Hot Core Base) | **第 3 优先级** (仅常驻 2-3 个通用核心 Core Skill) | 保持极低开销 (&le; 500 Tokens) | 常驻热加载 |
-| **`~/.gemini/config/skills/`**<br>**`~/.claude/skills/`**<br>**`~/.trae-cn/skills/`** | **各大 IDE 公共技能目录** (Public Skill Folders) | **自动巡检捕获** (检测用户手动 `npx` 安装的新技能) | 触发 `runSync` 后恢复极简 | 自动巡检移入统一共享冷库 `~/.agents/skills_archive/` |
+| **`<ProjectRoot>/.agents/skills/`** | **Project-Scoped Active Skills** (Project Scope) | **Priority 1** (Reuses skills already loaded in project) | Active project scope only (~300-500 Tokens) | Cleaned up via `/cleanup` upon project completion |
+| **`~/.agents/skills_archive/`** | **Unified Shared Cold Archive Vault** (Cold Vault) | **Priority 2** (0ms copy to project; shared across IDEs) | **0 Tokens** (Cold state, zero base overhead) | Permanent private vault; never wiped by project cleanup |
+| **`~/.<ide-or-agent>/skills/`** | **IDE Hot Base Directory** (Hot Core Base) | **Priority 3** (Houses only 2-3 core essential skills) | Minimal overhead (&le; 500 Tokens) | Permanent hot loading |
+| **`~/.gemini/config/skills/`**<br>**`~/.claude/skills/`**<br>**`~/.trae-cn/skills/`** | **IDE Public Skill Folders** (Public Folders) | **Auto-Sync Scanner** (Detects manual `npx` skill installs) | Restored to hot core on `runSync` | Auto-migrated to `~/.agents/skills_archive/` |
 
 ---
 
-## 🔍 5 维多源自动推断逻辑 (5-Layer Multi-Dimensional Inference Pipeline)
+## 🔍 5-Layer Multi-Dimensional Inference Pipeline
 
-系统通过代码层与语义层的 5 维智能推断管道，零沟通精准判别并装载项目所需的技能：
+The system uses a 5-layer code and intent detection pipeline to infer and inject required skills with zero extra communication:
 
 ```text
-项目源码 / 配置 / 对话
- ├── 1. 包配置文件扫描 (package.json / requirements.txt / Cargo.toml / go.mod)
- ├── 2. 代码特征与后缀扫描 (.glsl / .swift / .sqlx / .figma.ts)
- ├── 3. 用户对话意图与语义匹配 ("做个磨砂玻璃 UI" / "检查 API 安全头")
- ├── 4. 显式斜杠快捷唤醒 (/solidity, /gsap-core)
- └── 5. 三级级联查找与去重锁 (项目局部 -> 共享冷库 -> 多云端源)
+Project Source / Config / Conversation
+ ├── 1. Package Config Files (package.json / requirements.txt / Cargo.toml / go.mod)
+ ├── 2. Code Extension & AST Feature Scan (.glsl / .swift / .sqlx / .figma.ts)
+ ├── 3. Conversation Semantic Intent ("Build frosted glass UI", "Audit SQL injection")
+ ├── 4. Explicit Slash Command Triggers (/solidity, /gsap-core)
+ └── 5. Cascading Circuit-Breaker Resolution (Project Local -> Cold Vault -> Multi-Cloud)
 ```
 
-| 推断维度 | 触发探测源 | 典型匹配示例 |
+| Inference Layer | Trigger Source | Example Match |
 | :--- | :--- | :--- |
-| **1. 依赖配置文件** | `package.json`, `requirements.txt`, `Cargo.toml` | 扫到 `"three"` ➔ `3d-web-experience`；扫到 `"torch"` ➔ `ml-best-practices` |
-| **2. 代码后缀特征** | `.glsl`, `.vert`, `.frag`, `.swift`, `.sqlx` | 发现 `.glsl` ➔ `web-shader-extractor`；发现 `.swift` ➔ `figma-swiftui` |
-| **3. 对话语义意图** | 自然语言需求描述 | 提到“毛玻璃暗黑 UI” ➔ `ditther-dark-glass`；提到“SQL 注入审计” ➔ `upskill/sec-header` |
-| **4. 显式斜杠唤醒** | 斜杠指令或唤醒词 | 输入 `/solidity` ➔ 显式精确装载 `solidity` 智能合约技能 |
-| **5. 级联去重查找** | 磁盘目录锁 & 网络 API | 命中项目目录 (0ms) ➔ 命中共享冷库 (0ms) ➔ 级联多云端源 |
+| **1. Config Dependencies** | `package.json`, `requirements.txt`, `Cargo.toml` | Sees `"three"` ➔ Loads `3d-web-experience`; Sees `"torch"` ➔ Loads `ml-best-practices` |
+| **2. Code Extensions** | `.glsl`, `.vert`, `.frag`, `.swift`, `.sqlx` | Sees `.glsl` ➔ Loads `web-shader-extractor`; Sees `.swift` ➔ Loads `figma-swiftui` |
+| **3. Conversational Intent** | Natural language user prompts | Prompt mentions "dark glassmorphism UI" ➔ Loads `ditther-dark-glass` |
+| **4. Slash Commands** | Slash commands or explicit tags | Prompt contains `/solidity` ➔ Explicitly loads `solidity` smart contract skill |
+| **5. Cascading Resolution** | Disk locks & Network Registries | Project Scope (0ms) ➔ Cold Vault (0ms) ➔ Cascade Multi-Cloud Registries |
 
 ---
 
-## 全网多云端源与本地注册表级联支持表 (Multi-Registry Universal Engine)
+## 🌐 Universal Multi-Registry Cascading Engine
 
-系统全面适配并内置实现了全网多云端与本地注册表源的按需匹配与精准拉取：
+Fully compatible with leading public, enterprise, and custom skill registries:
 
-| 云端/本地来源 | 维护主体 | 核心差异化领域 | 自动化匹配/拉取逻辑 |
+| Registry Source | Maintained By | Specialty Domain | Auto-Fetch Command |
 | :--- | :--- | :--- | :--- |
-| **1. Vercel (`vercel-labs`)** | Vercel & 开源社区 | Web 前端、Next.js、UI/UX 规范 | `npx skills add <name>` |
-| **2. Upskill (`upskill.dev`)** | 安全团队 | 恶意代码防御、安全审计、合规重构 | `npx upskill add <name>` |
-| **3. 巨头官方 (`Stripe/Cloudflare`)**| 各大 Tech 巨头 | 官方 API、Serverless 边缘计算、数据库 | `npx skills add owner/repo` |
-| **4. 国内 Gitee / CDN 节点** | Gitee / jsDelivr | 国内秒级响应 (Ping < 30ms) | `npx skills add vercel-labs/skills/<name>` |
-| **5. 您的私有 GitHub 组织** | 您的团队 | 团队内部私有架构、商业护城河规范 | `npx skills add your-org/repo` |
+| **1. Vercel (`vercel-labs`)** | Vercel & Community | Web Frontend, Next.js, UI/UX Guidelines | `npx skills add <name>` |
+| **2. Upskill (`upskill.dev`)** | Security Teams | Vulnerability Defense, Security Audits, Compliance | `npx upskill add <name>` |
+| **3. Tech Giants (`Stripe/Cloudflare`)**| Industry Leaders | Official APIs, Serverless Edge, Databases | `npx skills add owner/repo` |
+| **4. Domestic CDN / Mirrors** | Gitee / jsDelivr | Low latency mirrors (Ping < 30ms) | `npx skills add vercel-labs/skills/<name>` |
+| **5. Private GitHub Orgs** | Enterprise Teams | Internal Architecture, Proprietary Specs | `npx skills add your-org/repo` |
 
 ---
 
-## 四大工业级核心模块 (Four Core Modules)
-
-```text
-skill-orchestrator
- ├── 1. 依赖自动推断引擎 (Package/AST-Based Dependency Injection)
- ├── 2. Prompt 上下文缓存锚点 (Semantic Prompt Caching)
- ├── 3. 极速容错降级保障 (Fallback Engine)
- └── 4. Token 预算实时诊断仪表盘 (Token Budget Telemetry & Guard)
-```
-
----
-
-## 1. 三级混合拓扑架构图 (3-Tier Hybrid Architecture)
+## 🏗️ 3-Tier Hybrid Architecture
 
 ```mermaid
 flowchart TD
@@ -91,49 +81,45 @@ flowchart TD
     classDef cloudStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
     classDef phaseStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
 
-    subgraph STORAGE["三级存储与技能源"]
+    subgraph STORAGE["3-Tier Storage Topology"]
         direction TB
-        HotCore["1. 全局热存储 (Hot Core)<br>config/skills/<br>仅 2-3 个通用基础 Skill<br>(占用 Tokens &le; 500)"]:::hotStyle
-        ColdArchive["2. 全平台统一共享私有冷库 (Unified Shared Cold Vault)<br>~/.agents/skills_archive/<br>跨 IDE 共享私有定制 Skill<br>(占用 Tokens = 0)"]:::coldStyle
-        VercelCloud["3. Vercel 云端插件库 (Vercel Cloud Registry)<br>vercel-labs/skills API<br>海量开源社区 Skill 资源库<br>(占用 Tokens = 0)"]:::cloudStyle
+        HotCore["1. Global Hot Storage (Hot Core)<br>config/skills/<br>2-3 Core Skills only<br>(Tokens &le; 500)"]:::hotStyle
+        ColdArchive["2. Unified Shared Cold Vault<br>~/.agents/skills_archive/<br>Shared private skills across all IDEs<br>(Tokens = 0)"]:::coldStyle
+        VercelCloud["3. Cloud Skill Registries<br>Vercel / Upskill / GitHub API<br>Public open-source repositories<br>(Tokens = 0)"]:::cloudStyle
     end
 
-    subgraph LIFECYCLE["项目生命周期全流程"]
+    subgraph LIFECYCLE["Project Lifecycle Pipeline"]
         direction TB
-        P1["Phase 1: 需求讨论期<br>・项目目录 0 技能<br>・极速沟通产品文档/架构<br>・Tokens 0 额外开销"]:::phaseStyle
-        P2["Phase 2: 级联匹配与多源依赖推断<br>・Auto-Infer: 自动扫配置文件/后缀<br>・1st 优先检索: 共享私有冷库<br>・2nd 云端拉取: Vercel 云端库<br>・首轮自动输出多源标注与 Token 健康卡"]:::phaseStyle
-        P3["Phase 3: 核心开发与单向增量<br>・常驻项目专属技能<br>・中途新需求: 增量补充<br>・严禁中途频繁删除 (防废料)"]:::phaseStyle
-        P4["Phase 4: 大版本交付与清理<br>・项目大版本完结<br>・统一清理项目下 .agents/skills/<br>・恢复项目干净状态"]:::phaseStyle
+        P1["Phase 1: Requirements Alignment<br>・Project folder: 0 skills<br>・Discuss architecture & specs<br>・0 Extra token overhead"]:::phaseStyle
+        P2["Phase 2: Cascading Inference & Injection<br>・Auto-scan configs & extensions<br>・1st Lookup: Shared Cold Vault<br>・2nd Fetch: Cloud Registries<br>・Auto-output Telemetry Status Card"]:::phaseStyle
+        P3["Phase 3: Core Development & Incremental Addition<br>・Project-scoped active skills<br>・Mid-project features: Add incrementally<br>・Avoid mid-project deletion"]:::phaseStyle
+        P4["Phase 4: Milestone Delivery & Cleanup<br>・Project milestone complete<br>・Clean up project .agents/skills/<br>・Restores clean 0-token state"]:::phaseStyle
 
         P1 --> P2 --> P3 --> P4
     end
 
-    ColdArchive -.->|优先级 1: 私有匹配| P2
-    VercelCloud -.->|优先级 2: 云端拉取| P2
+    ColdArchive -.->|Priority 1: Local Match| P2
+    VercelCloud -.->|Priority 2: Cloud Fetch| P2
 ```
 
 ---
 
-## 2. 手动 `npx` 安装自动捕获巡检图 (Manual Skill Auto-Sync)
+## 🔄 Manual `npx` Skill Auto-Sync Engine
 
 ```mermaid
 flowchart TD
-    UserAction["用户手动在终端执行:<br>npx skills add (新技能名)"] --> PublicFolder["放置于公共目录:<br>config/skills/"]
-    PublicFolder --> Trigger["AI 开启新对话 或 运行 npm run sync"]
-    Trigger --> Detect["runSync() 自动差异比对:<br>发现非 Core 的新增技能文件夹"]
-    Detect --> Migrate["自动迁移到共享私有冷库:<br>Move 新技能 到 ~/.agents/skills_archive/"]
-    Migrate --> Result["全局开局 Token 瞬间恢复极简状态 (&le; 500 Tokens)!"]
+    UserAction["User runs terminal command:<br>npx skills add <skill-name>"] --> PublicFolder["Installed into public folder:<br>config/skills/"]
+    PublicFolder --> Trigger["AI starts new chat session OR user runs 'npm run sync'"]
+    Trigger --> Detect["runSync() compares diffs:<br>Detects new non-core skill folders"]
+    Detect --> Migrate["Auto-migrated to Shared Cold Vault:<br>Move new skill to ~/.agents/skills_archive/"]
+    Migrate --> Result["Global base token footprint restored to ultra-clean state (&le; 500 Tokens)!"]
 ```
 
 ---
 
-## 汇报卡触发与手动唤醒规范 (Telemetry Report Protocol)
+## 📊 Token Telemetry Diagnostic Report
 
-### 唤醒/触发的四种方式：
-1. **首轮自动触发**：新项目需求定稿 / 中途新增大模块技能时，AI 在回复末尾自动呈现。
-2. **斜杠指令唤醒（最推荐）**：在对话框输入 `/status`（利用 IDE 的 Tab 键自动补全）。
-3. **自然语言唤醒**：对 AI 说“查看 Token 占用”、“技能诊断”、“当前项目装了哪些技能”。
-4. **命令行唤醒（开发者）**：在项目终端运行 `npm run status`（等价于执行 `node scripts/orchestrate.js status`）。
+Trigger the Telemetry Report manually anytime using slash commands or natural language:
 
 ```text
 ------------------------------------------------------------
@@ -154,85 +140,86 @@ Prompt Cache Anchor          : Injected (4x Speedup)
 
 ---
 
-## 安装与使用
+## 🚀 Quick Start & Installation
 
-### 一键安装 (Distribution)
+### One-Line Install
 ```bash
 npx skills add amasun/skill-orchestrator
 ```
 
-### 命令行工具操作（开发者备用）
+### CLI Commands (For Developers & Automation)
 ```bash
-# 1. 多源依赖自动推断 (自动读取配置文件/代码后缀零沟通匹配技能)
-node scripts/orchestrate.js infer   # 或 npm run infer
+# 1. Multi-Source Dependency Auto-Inference (Scans configs, file extensions & package.json)
+node scripts/orchestrate.js infer   # or npm run infer
 
-# 2. 自动巡检检测用户手动 npx 安装的新技能并移入共享冷库
-node scripts/orchestrate.js sync    # 或 npm run sync
+# 2. Auto-Sync scanner: Migrates manually installed npx skills to shared cold vault
+node scripts/orchestrate.js sync    # or npm run sync
 
-# 3. Token 预算诊断仪表盘 / 汇报卡手动唤醒 (查看精确 Token 占用与健康度)
-node scripts/orchestrate.js status  # 或 npm run status
+# 3. Token Budget Diagnostic Dashboard / Telemetry Report
+node scripts/orchestrate.js status  # or npm run status
 
-# 4. 项目结项一键清理
-node scripts/orchestrate.js cleanup # 或 npm run cleanup
+# 4. Project Milestone Cleanup (Wipes project-level temporary skills)
+node scripts/orchestrate.js cleanup # or npm run cleanup
 
-# 5. 退出机制 (还原所有归档技能至全局目录并彻底卸载，0 数据丢失)
-node scripts/orchestrate.js eject   # 或 npm run eject
+# 5. Smart Offboarding Eject (Restores skills to original IDE paths & uninstalls safely)
+node scripts/orchestrate.js eject   # or npm run eject
 ```
 
 ---
 
-## 斜杠指令与自然语言触发 (Triggers & Shortcuts)
+## ⚡ Shortcuts, Slash Commands & Triggers
 
-在 AI 对话框中，无需输入命令行，直接使用**斜杠指令**或**自然语言**即可自动触发后台操作：
+In any AI Agent chat session, use slash commands or natural language triggers without touching the terminal:
 
-| 斜杠指令 (最推荐 - 支持 IDE 敲 / 自动补全) | 替代语法 | 自然语言口语表述 | 后台自动执行 |
+| Slash Command (Recommended - Tab Autocomplete) | Alternate Syntax | Natural Language Prompt | Executed Action |
 | :---: | :---: | :--- | :--- |
-| **`/status`** | `$status` / `status` | **“查看 Token 占用”、“技能诊断”** | `node scripts/orchestrate.js status` (`npm run status`) |
-| **`/init`** | `$init` / `init` | **“初始化技能库”、“清空开局占用”** | `node scripts/orchestrate.js init` (`npm run init`) |
-| **`/infer`** | `$infer` / `infer` | **“检查依赖”、“自动匹配技能”** | `node scripts/orchestrate.js infer` (`npm run infer`) |
-| **`/sync`** | `$sync` / `sync` | **“刚才 npx 装了新技能，整理一下”** | `node scripts/orchestrate.js sync` (`npm run sync`) |
-| **`/cleanup`** | `$cleanup` / `cleanup` | **“项目开发完成了”、“清理临时技能”** | `node scripts/orchestrate.js cleanup` (`npm run cleanup`) |
-| **`/eject`** | `$eject` / `eject` / `uninstall` | **“恢复技能并卸载”、“退出调度管理”** | `node scripts/orchestrate.js eject` (`npm run eject`) |
+| **`/status`** | `$status` / `status` | **"Check Token status", "Skill Telemetry"** | `node scripts/orchestrate.js status` (`npm run status`) |
+| **`/init`** | `$init` / `init` | **"Initialize Skill Vault", "Consolidate skills"** | `node scripts/orchestrate.js init` (`npm run init`) |
+| **`/infer`** | `$infer` / `infer` | **"Check dependencies", "Auto-match skills"** | `node scripts/orchestrate.js infer` (`npm run infer`) |
+| **`/sync`** | `$sync` / `sync` | **"Sync manual npx skills", "Update vault"** | `node scripts/orchestrate.js sync` (`npm run sync`) |
+| **`/cleanup`** | `$cleanup` / `cleanup` | **"Project complete", "Clean up project skills"** | `node scripts/orchestrate.js cleanup` (`npm run cleanup`) |
+| **`/eject`** | `$eject` / `eject` / `uninstall` | **"Restore skills & eject", "Uninstall orchestrator"** | `node scripts/orchestrate.js eject` (`npm run eject`) |
 
 ---
 
-## 常见问题解答 (Q&A)
+## ❓ Frequently Asked Questions (FAQ)
 
-### Q1: 为什么我的 AI 工具一开启对话就会占用近 10,000 个 Tokens？
-**答**：默认模式会将所有安装的技能简介全部预载入开局提示词。`skill-orchestrator` 通过建立全平台统一共享私有冷库（`~/.agents/skills_archive/`），将开局占用直接从 9,757 压降到 500 个 Tokens 以内（降低 95%+）。
+### Q1: Why does my AI Coding Assistant consume ~10,000 tokens on every single message?
+**Answer**: Default agent configurations preload all installed skill descriptions into the base prompt. `skill-orchestrator` consolidates non-core skills into a **Unified Shared Cold Vault** (`~/.agents/skills_archive/`), slashing base token overhead from ~9,757 down to < 500 tokens (95%+ reduction).
 
-### Q2: 统一共享私有冷库支持跨 IDE（Antigravity, Trae, Claude Code）复用吗？
-**答**：是的！系统默认将全平台统一共享私有冷库设置在 `~/.agents/skills_archive/`。在 Antigravity 中积累归档的技能，打开 Trae 或 Claude Code 可实现 0ms 无缝共享使用。
+### Q2: Does the Cold Archive Vault support cross-IDE sharing (Antigravity, Trae, Claude Code)?
+**Answer**: Yes! The cold archive defaults to `~/.agents/skills_archive/`. Skills archived in Antigravity are instantly accessible in Trae or Claude Code with 0ms overhead.
 
-### Q3: 除了 package.json 之外，AI 还能从哪些地方自动推断技能？
-**答**：支持 5 大维度推断：1. Node 的 `package.json`；2. Python 的 `requirements.txt` / Rust 的 `Cargo.toml` / Go 的 `go.mod`；3. 代码特征后缀（如 `.glsl` / `.swift` / `.sqlx`）；4. 自然语言对话意图；5. 显式输入 `/技能名` 唤醒。
+### Q3: How does Skill Orchestrator infer skills beyond package.json?
+**Answer**: It scans 5 dimensions: 1. `package.json`, `requirements.txt`, `Cargo.toml`, `go.mod`; 2. Code extensions (`.glsl`, `.swift`, `.sqlx`); 3. Conversational intent; 4. Slash commands (`/skill-name`); 5. Project `package.json` skills history manifest.
 
-### Q4: 在多源检索拉取时，如何保证技能绝不重复、绝不冲突？
-**答**：采用“1st 优先命中即短路截断”原则（本地冷库 > CDN 镜像 > 云端库）与“本地文件锁幂等校验”，确保相同技能有且仅有一份装载，0 冲突 0 重复。
+### Q4: How does it prevent duplicate or conflicting skills?
+**Answer**: Through short-circuit resolution (Local Project > Cold Vault > Cloud Registries) and file-system idempotent locks, ensuring each skill is loaded exactly once with 0 duplication.
 
-### Q5: 技能只在项目本地装载，会随着对话轮数变长而越来越占 Token 吗？
-**答**：不会。项目本地技能属于固定的开局静态上下文，在整个项目开发期间只占用一次固定的额度 (约 300~500 Tokens)，绝不会随对话轮数翻倍。
+### Q5: Will project-scoped skills increase token usage as conversation length grows?
+**Answer**: No. Project skills form a static context anchor at the top of the prompt. They occupy a fixed token budget (~300-500 Tokens) and never multiply across chat turns.
 
-### Q6: 汇报卡可以通过哪些方式手动唤醒查看？/status 会和 IDE 内置命令冲突吗？
-**答**：支持四种方式：1. 对话框直接发斜杠指令 `/status`（支持 Tab 键补全）；2. 发送 `$status` 或 `status`；3. 对 AI 说“查看 Token 占用”；4. 在终端运行 `npm run status`。不会冲突，亦支持 100% 独占具名指令 `/skill-status`。
+### Q6: Can I customize the maximum skill load limit per project?
+**Answer**: Yes! In `v3.2.2+`, the default limit is set to `10`. You can customize it via:
+1. CLI Flag: `--limit=8`
+2. `package.json`: `"skill-orchestrator": { "maxSkills": 8 }`
+3. Global Config: `~/.agents/config.json` (`{ "maxSkills": 8 }`)
+4. Environment Variable: `MAX_SKILLS_LIMIT=8`
 
-### Q7: 为什么开发过程中采用“单向增量追加 (只增不删)”策略？
-**答**：如果中途删掉技能，当再次需要该技能时，AI 必须重新发起搜索并重新拷贝，这产生的重复工具调用和对话废料比技能占用的 Token 昂贵得多。“只增不删”能保证逻辑连贯且最省 Token。
+### Q7: If I run `/cleanup`, how do I recover my project's previously used skills?
+**Answer**: In `v3.2.4+`, used skills are automatically recorded in your project's `package.json`. Running `node scripts/orchestrate.js infer` (or `/infer`) reads the manifest and restores all skills from the cold archive in 0ms!
 
-### Q8: 从 Vercel / Upskill 等云端临时拉取的技能，会自动存入我的个人私有冷库吗？
-**答**：绝对不会。云端拉取的技能被视为“临时项目依赖”，仅保存在当前项目的临时目录中。项目结项清理 (`cleanup`) 时会自动随项目删除，确保您的个人私有冷库始终 100% 纯净。
+### Q8: Will cloud-downloaded skills pollute my private Cold Archive Vault?
+**Answer**: No. Skills pulled from cloud registries are marked as project-scoped dependencies. They reside in `./.agents/skills/` and are removed during `/cleanup`, ensuring your private cold archive remains 100% clean.
 
-### Q9: 如果我自己手动在终端敲 `npx skills add` 安装了新技能，系统能感知吗？
-**答**：能。系统内置 `runSync` 自动巡检机制。在新会话开启或运行 `npm run sync` 时，会自动捕获手动安装的公有技能并将其迁移移入共享冷库，防止开局 Token 再次膨胀。
+### Q9: What happens if I update a skill published on npm/cloud?
+**Answer**: In `v3.2.5+`, running `node scripts/orchestrate.js sync` (or `/sync`) detects updated skills in your IDE directories and automatically replaces old versions in the Cold Archive Vault with the latest version.
 
-### Q10: 如果我不想用了，如何彻底退出并还原所有技能？(Eject 机制)
-**答**：只需在对话框发送 `/eject`（或在终端运行 `npm run eject`），系统会**自动将私有冷库中的所有技能 100% 还原移动回全局目录**，并安全删除冷库与相关配置，系统瞬间恢复至默认原始状态，**保证 0 数据丢失！**
+### Q10: How do I completely uninstall and restore all archived skills? (Eject Engine)
+**Answer**: Simply run `node scripts/orchestrate.js eject` (or `/eject`). The system reads `vault_registry.json` and restores 100% of archived skills back to their exact original IDE paths, ensuring 0 data loss.
 
 ---
 
-## 变更与迭代历史 (Changelog)
+## 📜 License
 
-- **v3.0.0 (2026-07-28)**：新增一键退出与还原机制 (`/eject` / `runEject`)，支持将所有冷库归档技能 100% 还原回全局目录并安全卸载，确保 0 数据丢失。
-- **v2.7.1 (2026-07-28)**：优化重构代码为纯粹干净的全平台统一共享冷库架构。
-- **v2.6.0 (2026-07-28)**：全面升级架构为全平台统一共享私有冷库。
-- **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块。
+[MIT](LICENSE) &copy; amasun

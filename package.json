@@ -9,6 +9,7 @@
   "files": [
     "SKILL.md",
     "README.md",
+    "README_CN.md",
     "scripts/",
     "package.json"
   ],
