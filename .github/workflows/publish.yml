@@ -1,16 +1,36 @@
-name: Publish to NPM
+name: CI & Publish
 
 on:
   push:
+    branches: [ master ]
     tags:
       - 'v*'
-  workflow_dispatch:
+  pull_request:
+    branches: [ master ]
 
 jobs:
+  # 1. 代码质量与语法检查（每次 commit/PR/push 都会执行）
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify CLI status
+        run: node scripts/orchestrate.js status
+
+  # 2. 自动化发布到 NPM 并自动创建 GitHub Release（仅在推 Tag 时执行）
   publish:
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
     steps:
       - name: Checkout repository
@@ -24,3 +44,8 @@ jobs:
 
       - name: Publish to NPM
         run: npm publish --provenance --access public
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
