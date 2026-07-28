@@ -13,26 +13,28 @@
 
 ## 📢 首轮对话自动汇报规范 (Proactive Telemetry Report Protocol)
 
-在任何新项目/新工作区中，当需求定稿或首轮技能调配完成后，AI 会在回复末尾**自动极简标注技能来源与归属**，无需用户手动询问：
+在任何新项目/新工作区中，当需求定稿或首轮技能调配完成后，AI 会在回复末尾**自动标注技能来源与归属**（使用无冗余 Emoji 的专业卡片格式）：
 
 ```text
 ------------------------------------------------------------
-📊 本项目技能与 Token 健康度汇报 (Project Skills Telemetry)
+[Project Skills & Token Telemetry]
 ------------------------------------------------------------
-🔥 全局热底座开销 : ~420 Tokens [健康 🟢]
-🚀 本项目专属装载 : 
+全局热底座开销 : ~420 Tokens [Status: Healthy]
+本项目专属装载 : 
    ├── 3d-web-experience   : 450 Tokens (来源: 本地冷库 | 推断: package.json)
    ├── gsap-core           : 320 Tokens (来源: 本地冷库 | 推断: package.json)
    ├── web-shader-extractor: 380 Tokens (来源: 本地冷库 | 推断: 代码特征 [.glsl])
    ├── ditther-dark-glass  : 410 Tokens (来源: 本地冷库 | 推断: 需求意图)
    ├── solidity            : 510 Tokens (来源: Vercel云端 | 仅存项目临时目录)
 ------------------------------------------------------------
-💡 本项目总底座开销 : 2,070 Tokens (对比默认全载节省 78.8% 空间!)
-⚡ Prompt Cache 锚点: 已自动注入 (响应速度提速 4x)
+本项目总底座开销 : 2,070 Tokens (较默认全载节省 78.8% 空间)
+Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
 ============================================================
 ```
 
-### 🔍 5 大技能推断来源分类 (Inference Source Categories)
+---
+
+## 🔍 5 大技能推断来源分类 (Inference Source Categories)
 1. **`推断: package.json`**：JavaScript / Node 前端依赖（扫描 `package.json`）
 2. **`推断: requirements.txt` / `Cargo.toml` / `go.mod`**：Python / Rust / Go 等后端依赖配置文件
 3. **`推断: 代码特征 [.glsl / .sqlx / .swift]`**：扫描到项目中特定扩展名的特征代码文件
@@ -201,7 +203,7 @@ npm run cleanup
 
 ## 变更与迭代历史 (Changelog)
 
-- **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块，扩展 5 大技能推断来源（含 `package.json`、多语言配置文件、特定代码扩展名及语义意图）。
+- **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块，规范首轮汇报卡样式（采用极简 ASCII 专业风格，去除非必要 Emoji）。
 - **v1.3.1 (2026-07-28)**：修复 GitHub 针对 `<>` 尖括号、`[]` 方括号标签解析的 Mermaid 语法兼容问题。
 - **v1.2.0 (2026-07-28)**：增加资产分类防护规范，规定 Vercel 云端临时技能仅保留在项目临时作用域，绝不污染个人私有冷库。
 - **v1.1.0 (2026-07-28)**：引入 Vercel 云端插件 (`vercel-labs/skills`) 融合支持，确立“本地私有 + 云端补位”三级级联架构。

@@ -14,22 +14,22 @@ An open, cross-platform Agent Skill that provides automated zero-base-token skil
 
 ## 📢 首轮对话自动汇报规范 (Proactive Telemetry Report Protocol)
 
-在任何新项目/新工作区中，当需求定稿或首轮技能调配完成后，AI 应当在回复末尾**自动极简标注技能来源与归属**：
+在任何新项目/新工作区中，当需求定稿或首轮技能调配完成后，AI 应当在回复末尾**自动标注技能来源与归属**（使用无冗余 Emoji 的专业卡片格式）：
 
 ```text
 ------------------------------------------------------------
-📊 本项目技能与 Token 健康度汇报 (Project Skills Telemetry)
+[Project Skills & Token Telemetry]
 ------------------------------------------------------------
-🔥 全局热底座开销 : ~420 Tokens [健康 🟢]
-🚀 本项目专属装载 : 
+全局热底座开销 : ~420 Tokens [Status: Healthy]
+本项目专属装载 : 
    ├── 3d-web-experience   : 450 Tokens (来源: 本地冷库 | 推断: package.json)
    ├── gsap-core           : 320 Tokens (来源: 本地冷库 | 推断: package.json)
    ├── web-shader-extractor: 380 Tokens (来源: 本地冷库 | 推断: 代码特征 [.glsl])
    ├── ditther-dark-glass  : 410 Tokens (来源: 本地冷库 | 推断: 需求意图)
    ├── solidity            : 510 Tokens (来源: Vercel云端 | 仅存项目临时目录)
 ------------------------------------------------------------
-💡 本项目总底座开销 : 2,490 Tokens (对比默认全载节省 74.5% 空间!)
-⚡ Prompt Cache 锚点: 已自动注入 (响应速度提速 4x)
+本项目总底座开销 : 2,070 Tokens (较默认全载节省 78.8% 空间)
+Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
 ============================================================
 ```
 
