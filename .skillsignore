@@ -1,0 +1,7 @@
+# .skillsignore - Filter out docs & image assets for npx skills add CLI
+docs/
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.gif

@@ -1,11 +1,17 @@
 {
   "name": "skill-orchestrator",
-  "version": "2.0.0",
-  "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization (v2.0 Industrial Grade)",
+  "version": "2.6.3",
+  "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization (v2.6 Unified Shared Cold Archive Edition)",
   "main": "scripts/orchestrate.js",
   "bin": {
     "skill-orchestrator": "scripts/orchestrate.js"
   },
+  "files": [
+    "SKILL.md",
+    "README.md",
+    "scripts/",
+    "package.json"
+  ],
   "scripts": {
     "init": "node scripts/orchestrate.js init",
     "sync": "node scripts/orchestrate.js sync",
@@ -18,7 +24,8 @@
     "antigravity",
     "token-optimization",
     "claude-code",
-    "cursor"
+    "cursor",
+    "trae"
   ],
   "author": "amasun",
   "license": "MIT"
