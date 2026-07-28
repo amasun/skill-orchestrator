@@ -14,7 +14,6 @@
 | **技能推断维度** | 依赖人类口头语言描述与 LLM 语义猜测 | **代码层多源自动推断** (读 `package.json`/语言配置文件/代码后缀 + 语义) |
 | **云端源覆盖度** | 单一依赖 Vercel 注册表 | **全网多云端源级联支持** (Vercel, Upskill, GitHub Orgs, CDN, 私有Org) |
 | **响应速度与费用** | 每轮对话重复计算 10k Token 提示词 | **Prompt Cache 缓存锚点** (闪电提速 4x，费用降低 90%) |
-| **网络离线高可用** | 网络超时断网导致云端拉取崩溃中断 | **熔断降级引擎** (自动生成 Local Micro-Template 降级兜底) |
 | **可观察性与监控** | 无法感知技能占用的具体 Token 权重 | **Token Telemetry 诊断仪表盘** (可视健康度柱状输出 + 多源标注) |
 
 ---
@@ -40,7 +39,6 @@
 4. **全网多云端源与本地注册表无缝级联**：支持 Vercel、Upskill 安全库、GitHub 官方组织仓库 (`owner/repo`)、国内极速 CDN 及团队私有库。
 5. **透明 Token 汇报卡与 100% 来源追溯**：项目首轮或随时使用 `/status` 输出极简健康汇报卡，精准标注每个技能的来源出处与推断依据。
 6. **Prompt Cache 缓存锚点注入**：自动在装载技能中注入 `<!-- @cache-control: ephemeral -->` 头部，提高 4 倍响应速度并降低 90% 费用。
-7. **5 秒网络超时熔断降级保护**：云端拉取遇到断网或超时，5 秒内自动秒切本地微模板兜底，保证对话永不卡死。
 
 ---
 
@@ -64,7 +62,7 @@
 skill-orchestrator
  ├── 1. 依赖自动推断引擎 (Package/AST-Based Dependency Injection)
  ├── 2. Prompt 上下文缓存锚点 (Semantic Prompt Caching)
- ├── 3. 熔断降级与离线保障 (Circuit Breaker & Fallback Engine)
+ ├── 3. 极速容错降级保障 (Fallback Engine)
  └── 4. Token 预算实时诊断仪表盘 (Token Budget Telemetry & Guard)
 ```
 
@@ -89,7 +87,7 @@ flowchart TD
     subgraph LIFECYCLE["项目生命周期全流程"]
         direction TB
         P1["Phase 1: 需求讨论期<br>・项目目录 0 技能<br>・极速沟通产品文档/架构<br>・Tokens 0 额外开销"]:::phaseStyle
-        P2["Phase 2: 级联匹配与多源依赖推断<br>・Auto-Infer: 自动扫配置文件/后缀<br>・1st 优先检索: 本地私有冷归档<br>・2nd 熔断保护拉取: Vercel 云端库<br>・首轮自动输出多源标注与 Token 健康卡"]:::phaseStyle
+        P2["Phase 2: 级联匹配与多源依赖推断<br>・Auto-Infer: 自动扫配置文件/后缀<br>・1st 优先检索: 本地私有冷归档<br>・2nd 云端拉取: Vercel 云端库<br>・首轮自动输出多源标注与 Token 健康卡"]:::phaseStyle
         P3["Phase 3: 核心开发与单向增量<br>・常驻项目专属技能<br>・中途新需求: 增量补充<br>・严禁中途频繁删除 (防废料)"]:::phaseStyle
         P4["Phase 4: 大版本交付与清理<br>・项目大版本完结<br>・统一清理项目下 .agents/skills/<br>・恢复项目干净状态"]:::phaseStyle
 
@@ -97,7 +95,7 @@ flowchart TD
     end
 
     ColdArchive -.->|优先级 1: 私有匹配| P2
-    VercelCloud -.->|优先级 2: 熔断拉取| P2
+    VercelCloud -.->|优先级 2: 云端拉取| P2
 ```
 
 ---
@@ -217,13 +215,13 @@ npm run cleanup
 **答**：能。系统内置 `runSync` 自动巡检机制。在新会话开启或运行 `npm run sync` 时，会自动捕获手动安装的公有技能并将其迁移移入私有冷库，防止开局 Token 再次膨胀。
 
 ### Q10: 如果遇到断网或云端 API 崩了，系统会卡死吗？
-**答**：绝对不会。系统内置 5 秒超时熔断保护机制（Circuit Breaker），遇到断网或超时，5 秒内会自动秒切本地 Micro-Template 微模板降级兜底，保证开发对话永不断挂！
+**答**：绝对不会。系统内置降级保护机制，遇到断网或超时，会自动秒切本地 Micro-Template 微模板降级兜底，保证开发对话永不断挂！
 
 ---
 
 ## 变更与迭代历史 (Changelog)
 
-- **v2.2.9 (2026-07-28)**：在功能特点中增加“分优先级按需调度装载，本项目所需技能精准拉取到当前项目目录，一目了然”。
-- **v2.2.8 (2026-07-28)**：优化多云端源表述。
+- **v2.3.0 (2026-07-28)**：清理删除“5 秒网络超时熔断降级保护”特定时延表述，保持通用降级保障机制。
+- **v2.2.9 (2026-07-28)**：增加项目局部域按需装载功能特点。
 - **v2.2.0 (2026-07-28)**：全盘在底层代码实现多云端/本地注册表源的自动匹配与精准拉取。
 - **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块。
