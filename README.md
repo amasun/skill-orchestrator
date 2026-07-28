@@ -1,6 +1,6 @@
 # Skill Orchestrator
 
-> 面向 AI Coding Agent 的多源技能动态推断、按需装载与 0 开局 Token 调度引擎 (v2.2)。
+> 面向 AI Coding Agent 的多源技能动态推断、按需装载与 0 开局 Token 调度引擎。
 
 ---
 
@@ -8,7 +8,7 @@
 
 在传统模式下，所有的 AI Agent 技能（Skills）都会在开局对话中被一次性预加载，这导致了极大的上下文浪费。
 
-| 痛点问题 | 传统模式 (All Preloaded) | 本策略架构 (v2.2.0 工业级全模块架构) |
+| 痛点问题 | 传统模式 (All Preloaded) | 本策略架构 (工业级全模块架构) |
 | :--- | :--- | :--- |
 | **开局 Token 占用** | ~9,757 Tokens (占用近 50% 预算槽) | **~0 - 500 Tokens** (节省 95%+) |
 | **技能推断维度** | 依赖人类口头语言描述与 LLM 语义猜测 | **代码层多源自动推断** (读 `package.json`/语言配置文件/代码后缀 + 语义) |
@@ -44,10 +44,10 @@
 
 ---
 
-## v2.2 四大工业级核心模块 (v2.2 Four Modules)
+## 四大工业级核心模块 (Four Core Modules)
 
 ```text
-skill-orchestrator (v2.2 工业级架构版)
+skill-orchestrator
  ├── 1. 依赖自动推断引擎 (Package/AST-Based Dependency Injection)
  ├── 2. Prompt 上下文缓存锚点 (Semantic Prompt Caching)
  ├── 3. 熔断降级与离线保障 (Circuit Breaker & Fallback Engine)
@@ -188,6 +188,6 @@ npm run cleanup
 
 ## 变更与迭代历史 (Changelog)
 
-- **v2.2.2 (2026-07-28)**：优化副标题表述为“面向 AI Coding Agent 的多源技能动态推断、按需装载与 0 开局 Token 调度引擎”。
+- **v2.2.3 (2026-07-28)**：清理正文和标题中硬编码的版本号描述，保持通用文档规范。
 - **v2.2.0 (2026-07-28)**：全盘在底层代码实现 5 大云端/本地注册表源的自动匹配与精准拉取。
 - **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块。

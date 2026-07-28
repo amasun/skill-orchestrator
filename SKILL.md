@@ -6,7 +6,7 @@ description: >
   throughout the project lifecycle (Init -> Requirements Alignment -> Single-Directional Addition -> Final Cleanup).
 ---
 
-# Skill Orchestrator Engine (v2.2)
+# Skill Orchestrator Engine
 
 An open, cross-platform Agent Skill that provides automated zero-base-token skill orchestration for AI Coding Assistants (Antigravity, Claude Code, Cursor, Trae, Codex).
 
