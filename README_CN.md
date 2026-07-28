@@ -52,6 +52,19 @@ npx skill-orchestrator cleanup # 或 skill-orchestrator cleanup
 npx skill-orchestrator eject   # 或 skill-orchestrator eject
 ```
 
+### 斜杠指令与自然语言触发 (Triggers & Shortcuts)
+
+在 AI 对话框中，无需输入命令行，直接使用**斜杠指令**或**自然语言**即可自动触发后台操作：
+
+| 斜杠指令 (最推荐 - 支持 IDE 敲 / 自动补全) | 替代语法 | 自然语言口语表述 | 后台自动执行 |
+| :---: | :---: | :--- | :--- |
+| **`/status`** | `$status` / `status` | **“查看 Token 占用”、“技能诊断”** | `npx skill-orchestrator status` |
+| **`/init`** | `$init` / `init` | **“初始化技能库”、“清空开局占用”** | `npx skill-orchestrator init` |
+| **`/infer`** | `$infer` / `infer` | **“检查依赖”、“自动匹配技能”** | `npx skill-orchestrator infer` |
+| **`/sync`** | `$sync` / `sync` | **“刚才 npx 装了新技能，整理一下”** | `npx skill-orchestrator sync` |
+| **`/cleanup`** | `$cleanup` / `cleanup` | **“项目开发完成了”、“清理临时技能”** | `npx skill-orchestrator cleanup` |
+| **`/eject`** | `$eject` / `eject` / `uninstall` | **“恢复技能并卸载”、“退出调度管理”** | `npx skill-orchestrator eject` |
+
 ---
 
 ## 🛠️ Node.js 环境自愈与静默安装 (Node.js Environment Self-Healing)
@@ -203,51 +216,8 @@ Prompt Cache Anchor          : Injected (4x Speedup)
 ============================================================
 ```
 
----
-
-## 斜杠指令与自然语言触发 (Triggers & Shortcuts)
-
-在 AI 对话框中，无需输入命令行，直接使用**斜杠指令**或**自然语言**即可自动触发后台操作：
-
-| 斜杠指令 (最推荐 - 支持 IDE 敲 / 自动补全) | 替代语法 | 自然语言口语表述 | 后台自动执行 |
-| :---: | :---: | :--- | :--- |
-| **`/status`** | `$status` / `status` | **“查看 Token 占用”、“技能诊断”** | `node scripts/orchestrate.js status` (`npm run status`) |
-| **`/init`** | `$init` / `init` | **“初始化技能库”、“清空开局占用”** | `node scripts/orchestrate.js init` (`npm run init`) |
-| **`/infer`** | `$infer` / `infer` | **“检查依赖”、“自动匹配技能”** | `node scripts/orchestrate.js infer` (`npm run infer`) |
-| **`/sync`** | `$sync` / `sync` | **“刚才 npx 装了新技能，整理一下”** | `node scripts/orchestrate.js sync` (`npm run sync`) |
-| **`/cleanup`** | `$cleanup` / `cleanup` | **“项目开发完成了”、“清理临时技能”** | `node scripts/orchestrate.js cleanup` (`npm run cleanup`) |
-| **`/eject`** | `$eject` / `eject` / `uninstall` | **“恢复技能并卸载”、“退出调度管理”** | `node scripts/orchestrate.js eject` (`npm run eject`) |
-
----
-
-## 常见问题解答 (Q&A)
-
-### Q1: 为什么我的 AI Agent 一开启对话就会占用近 10,000 个 Tokens？
-**答**：默认模式会将所有安装的技能简介全部预载入开局提示词。`skill-orchestrator` 通过建立全平台统一共享私有冷库（`~/.agents/skills_archive/`），将开局占用直接从 9,757 压降到 500 个 Tokens 以内（降低 95%+）。
-
-### Q2: 统一共享私有冷库支持跨 IDE（Antigravity, Trae, Claude Code）复用吗？
-**答**：是的！系统默认将全平台统一共享私有冷库设置在 `~/.agents/skills_archive/`。在 Antigravity 中积累归档的技能，打开 Trae 或 Claude Code 可实现 0ms 无缝共享使用。
-
-### Q3: 除了 package.json 之外，Skill Orchestrator 还能从哪些地方自动推断技能？
-**答**：支持 5 大维度推断：1. 依赖配置文件（`package.json` / `requirements.txt` / `Cargo.toml`）；2. 代码特征后缀（如 `.glsl` / `.swift` / `.sqlx`）；3. 对话语义意图；4. 显式斜杠指令；5. 项目 `package.json` 历史技能清单。
-
-### Q4: 在多源检索拉取时，如何保证技能绝不重复、绝不冲突？
-**答**：采用“1st 优先命中即短路截断”原则（项目目录 > 本地冷库 > CDN 镜像 > 云端库）与“本地文件锁幂等校验”，确保相同技能有且仅有一份装载，0 冲突 0 重复。
-
-### Q5: 技能只在项目本地装载，会随着对话轮数变长而越来越占 Token 吗？
-**答**：不会。项目本地技能属于固定的开局静态上下文，在整个项目开发期间只占用一次固定的额度 (约 300~500 Tokens)，且自动注入 `<!-- @cache-control: ephemeral -->` 缓存锚点，绝不会随对话轮数翻倍。
-
-### Q6: 我可以自定义每个项目最多装载的技能数量上限吗？
-**答**：完全可以！默认安全上限为 `10` 个。您可以通过命令行参数（`--limit=N`）、项目 `package.json`（`"skill-orchestrator": { "maxSkills": N }`）、全局配置文件 `~/.agents/config.json` 或环境变量 `MAX_SKILLS_LIMIT` 进行无缝自定义。
-
-### Q7: 如果我运行了 `/cleanup` 清理项目临时技能，后续如何找回原来使用过的技能？
-**答**：项目使用过的技能会自动持久化记录在 `package.json` 中。后续只需运行一次 `/infer`，解算引擎会自动读取清单并在 0ms 内从本地冷库将技能一键精准还原回项目！
-
-### Q8: 从 Vercel / Upskill 等云端临时拉取的技能，会自动存入我的个人私有冷库吗？
-**答**：绝对不会。云端拉取的技能被视为“临时项目依赖”，仅保存在当前项目的临时目录中。项目结项清理 (`cleanup`) 时会自动随项目删除，确保您的个人私有冷库始终 100% 纯净。
-
 ### Q9: 如果我在 npm 或云端更新了同名技能，本地冷库会自动更新覆盖吗？
-**答**：会的。运行 `node scripts/orchestrate.js sync`（或 `/sync`）会自动检测 IDE 目录下的最新技能版本，并直接覆盖替换本地冷库中的同名旧版。
+**答**：会的。运行 `npx skill-orchestrator sync`（或 `/sync`）会自动检测 IDE 目录下的最新技能版本，并直接覆盖替换本地冷库中的同名旧版。
 
 ### Q10: 如果我想彻底退出使用，如何安全还原所有技能并卸载？(Eject 机制)
-**答**：只需发送 `/eject`（或运行 `npm run eject`），系统会读取 `vault_registry.json`，**自动将私有冷库中的所有技能 100% 原路还原恢复移动回各大 IDE 原始目录**并安全卸载，保证 0 数据丢失！
+**答**：只需发送 `/eject`（或运行 `npx skill-orchestrator eject`），系统会读取 `vault_registry.json`，**自动将私有冷库中的所有技能 100% 原路还原恢复移动回各大 IDE 原始目录**并安全卸载，保证 0 数据丢失！

@@ -52,6 +52,19 @@ npx skill-orchestrator cleanup # or skill-orchestrator cleanup
 npx skill-orchestrator eject   # or skill-orchestrator eject
 ```
 
+### ⚡ Shortcuts, Slash Commands & Triggers
+
+In any AI Agent chat session, use slash commands or natural language triggers without touching the terminal:
+
+| Slash Command (Recommended - Tab Autocomplete) | Alternate Syntax | Natural Language Prompt | Executed Action |
+| :---: | :---: | :--- | :--- |
+| **`/status`** | `$status` / `status` | **"Check Token status", "Skill Telemetry"** | `npx skill-orchestrator status` |
+| **`/init`** | `$init` / `init` | **"Initialize Skill Vault", "Consolidate skills"** | `npx skill-orchestrator init` |
+| **`/infer`** | `$infer` / `infer` | **"Check dependencies", "Auto-match skills"** | `npx skill-orchestrator infer` |
+| **`/sync`** | `$sync` / `sync` | **"Sync manual npx skills", "Update vault"** | `npx skill-orchestrator sync` |
+| **`/cleanup`** | `$cleanup` / `cleanup` | **"Project complete", "Clean up project skills"** | `npx skill-orchestrator cleanup` |
+| **`/eject`** | `$eject` / `eject` / `uninstall` | **"Restore skills & eject", "Uninstall orchestrator"** | `npx skill-orchestrator eject` |
+
 ---
 
 ## 🛠️ Node.js Environment Self-Healing & Silent Installation
@@ -187,58 +200,17 @@ Prompt Cache Anchor          : Injected (4x Speedup)
 ============================================================
 ```
 
----
-
-## ⚡ Shortcuts, Slash Commands & Triggers
-
-In any AI Agent chat session, use slash commands or natural language triggers without touching the terminal:
-
-| Slash Command (Recommended - Tab Autocomplete) | Alternate Syntax | Natural Language Prompt | Executed Action |
-| :---: | :---: | :--- | :--- |
-| **`/status`** | `$status` / `status` | **"Check Token status", "Skill Telemetry"** | `node scripts/orchestrate.js status` (`npm run status`) |
-| **`/init`** | `$init` / `init` | **"Initialize Skill Vault", "Consolidate skills"** | `node scripts/orchestrate.js init` (`npm run init`) |
-| **`/infer`** | `$infer` / `infer` | **"Check dependencies", "Auto-match skills"** | `node scripts/orchestrate.js infer` (`npm run infer`) |
-| **`/sync`** | `$sync` / `sync` | **"Sync manual npx skills", "Update vault"** | `node scripts/orchestrate.js sync` (`npm run sync`) |
-| **`/cleanup`** | `$cleanup` / `cleanup` | **"Project complete", "Clean up project skills"** | `node scripts/orchestrate.js cleanup` (`npm run cleanup`) |
-| **`/eject`** | `$eject` / `eject` / `uninstall` | **"Restore skills & eject", "Uninstall orchestrator"** | `node scripts/orchestrate.js eject` (`npm run eject`) |
-
----
-
-## ❓ Frequently Asked Questions (FAQ)
-
-### Q1: Why does my AI Coding Assistant consume ~10,000 tokens on every single message?
-**Answer**: Default agent configurations preload all installed skill descriptions into the base prompt. `skill-orchestrator` consolidates non-core skills into a **Unified Shared Cold Vault** (`~/.agents/skills_archive/`), slashing base token overhead from ~9,757 down to < 500 tokens (95%+ reduction).
-
-### Q2: Does the Cold Archive Vault support cross-IDE sharing (Antigravity, Trae, Claude Code)?
-**Answer**: Yes! The cold archive defaults to `~/.agents/skills_archive/`. Skills archived in Antigravity are instantly accessible in Trae or Claude Code with 0ms overhead.
-
-### Q3: How does Skill Orchestrator infer skills beyond package.json?
-**Answer**: It scans 5 dimensions: 1. `package.json`, `requirements.txt`, `Cargo.toml`, `go.mod`; 2. Code extensions (`.glsl`, `.swift`, `.sqlx`); 3. Conversational intent; 4. Slash commands (`/skill-name`); 5. Project `package.json` skills history manifest.
-
-### Q4: How does it prevent duplicate or conflicting skills?
-**Answer**: Through short-circuit resolution (Local Project > Cold Vault > Cloud Registries) and file-system idempotent locks, ensuring each skill is loaded exactly once with 0 duplication.
-
-### Q5: Will project-scoped skills increase token usage as conversation length grows?
-**Answer**: No. Project skills form a static context anchor at the top of the prompt. They occupy a fixed token budget (~300-500 Tokens) and never multiply across chat turns.
-
-### Q6: Can I customize the maximum skill load limit per project?
-**Answer**: Yes! The default limit is set to `10`. You can customize it via:
-1. CLI Flag: `--limit=8`
-2. `package.json`: `"skill-orchestrator": { "maxSkills": 8 }`
-3. Global Config: `~/.agents/config.json` (`{ "maxSkills": 8 }`)
-4. Environment Variable: `MAX_SKILLS_LIMIT=8`
-
 ### Q7: If I run `/cleanup`, how do I recover my project's previously used skills?
-**Answer**: Used skills are automatically recorded in your project's `package.json`. Running `node scripts/orchestrate.js infer` (or `/infer`) reads the manifest and restores all skills from the cold archive in 0ms!
+**Answer**: Used skills are automatically recorded in your project's `package.json`. Running `npx skill-orchestrator infer` (or `/infer`) reads the manifest and restores all skills from the cold archive in 0ms!
 
 ### Q8: Will cloud-downloaded skills pollute my private Cold Archive Vault?
 **Answer**: No. Skills pulled from cloud registries are marked as project-scoped dependencies. They reside in `./.agents/skills/` and are removed during `/cleanup`, ensuring your private cold archive remains 100% clean.
 
 ### Q9: What happens if I update a skill published on npm/cloud?
-**Answer**: Running `node scripts/orchestrate.js sync` (or `/sync`) detects updated skills in your IDE directories and automatically replaces old versions in the Cold Archive Vault with the latest version.
+**Answer**: Running `npx skill-orchestrator sync` (or `/sync`) detects updated skills in your IDE directories and automatically replaces old versions in the Cold Archive Vault with the latest version.
 
 ### Q10: How do I completely uninstall and restore all archived skills? (Eject Engine)
-**Answer**: Simply run `node scripts/orchestrate.js eject` (or `/eject`). The system reads `vault_registry.json` and restores 100% of archived skills back to their exact original IDE paths, ensuring 0 data loss.
+**Answer**: Simply run `npx skill-orchestrator eject` (or `/eject`). The system reads `vault_registry.json` and restores 100% of archived skills back to their exact original IDE paths, ensuring 0 data loss.
 
 ---
 
