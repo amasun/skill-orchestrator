@@ -4,18 +4,19 @@
 
 ---
 
-## 架构背景与核心痛点 (Background & Pain Points)
+## 🔥 核心痛点与功能特点 (Pain Points & Core Capabilities)
 
-在传统模式下，所有的 AI Agent 技能（Skills）都会在开局对话中被一次性预加载，这导致了极大的上下文浪费与资产碎片化。
+在传统模式下，所有的 AI Agent 技能（Skills）都会在开局对话中被一次性预加载，导致极其严重的上下文浪费与私有资产碎片化。`skill-orchestrator` 通过建立全平台统一共享冷库与代码级动态推断，彻底解决了这一问题：
 
-| 痛点问题 | 传统模式 (All Preloaded) | 本策略架构 (全平台统一共享冷库架构) |
-| :--- | :--- | :--- |
-| **开局 Token 占用** | ~9,757 Tokens (占用近 50% 预算槽) | **~0 - 500 Tokens** (节省 95%+) |
-| **私有技能碎片化** | 各 Agent / IDE 工具目录独立分散、重复存储 | **全平台统一共享冷库** (`~/.agents/skills_archive/` 一次积累全端生效) |
-| **技能推断维度** | 依赖人类口头语言描述与 LLM 语义猜测 | **代码层 5 维自动推断** (扫 `package.json`/配置文件/代码后缀 + 语义) |
-| **云端源覆盖度** | 单一依赖 Vercel 注册表 | **全网多云端源级联支持** (Vercel, Upskill, GitHub Orgs, CDN, 私有Org) |
-| **响应速度与费用** | 每轮对话重复计算 10k Token 提示词 | **Prompt Cache 缓存锚点** (闪电提速 4x，费用降低 90%) |
-| **可观察性与监控** | 无法感知技能占用的具体 Token 权重 | **Token Telemetry 诊断仪表盘** (可视健康度柱状输出 + 多源标注) |
+| 痛点问题 (Pain Point) | 传统模式 (All Preloaded) | 本策略架构 (Skill Orchestrator) | 核心功能特点 (Key Capability) |
+| :--- | :--- | :--- | :--- |
+| **开局 Token 占用** | ~9,757 Tokens (占用近 50% 预算槽) | **~0 - 500 Tokens** (降低 95%+) | **0 开局底座空间释放**：极简热底座与本地私有冷库隔离 |
+| **私有技能碎片化** | 各 Agent / IDE 目录独立分散、重复拷贝 | **全平台统一共享冷库** (`~/.agents/skills_archive/`) | **全平台统一资产库**：在 Antigravity/Trae/Claude 全端 0ms 共享 |
+| **技能调度与收拢** | 全局污染，项目间乱拉乱装 | **分优先级按需调度装载** (项目 > 共享冷库 > 云端) | **项目局部精准收拢**：所有项目技能精准收拢在 `./.agents/skills/` |
+| **技能推断维度** | 依赖人类口语描述与 LLM 语义猜测 | **代码层 5 维自动推断** (扫 `package.json`/后缀/意图) | **零沟通代码依赖推断**：自动扫配置文件与 `.glsl`/`.swift` 等后缀 |
+| **云端源覆盖度** | 单一依赖 Vercel 注册表 | **全网多云端源级联支持** (Vercel, Upskill, Orgs, CDN) | **全网注册表级联**：支持 Vercel / Upskill / GitHub / 国内 CDN |
+| **响应速度与费用** | 每轮对话重复计算 10k Token 提示词 | **Prompt Cache 缓存锚点** (闪电提速 4x，费用降 90%) | **Prompt Cache 缓存注入**：自动注入 `<!-- @cache-control -->` 锚点 |
+| **可观察性与监控** | 无法感知技能占用的具体 Token 权重 | **Token Telemetry 诊断仪表盘** (健康度柱状卡片) | **透明 Token 汇报卡**：随时使用 `/status` 查看健康卡片与来源追溯 |
 
 ---
 
@@ -29,18 +30,6 @@
 | **`~/.agents/skills_archive/`** | **全平台统一共享私有冷库** (Unified Shared Cold Vault) | **第 2 优先级** (命中即 0ms 复制入项目，跨 IDE 全端共享) | **0 Tokens** (完全冷冻，开局 0 占用) | 永久私有保存，绝对不随项目清理 |
 | **`~/.<ide-or-agent>/skills/`** | **当前 IDE / Agent 全局热底座目录** (Hot Core Base) | **第 3 优先级** (仅常驻 2-3 个通用核心 Skill) | 保持极低开销 (&le; 500 Tokens) | 常驻热加载 |
 | **`~/.agents/skills/`**<br>**`~/.claude/skills/`**<br>**`~/.trae-cn/skills/`** | **第三方 Agent 全局公共目录** (Public Skill Folders) | **自动巡检捕获** (检测用户手动 `npx` 安装的新技能) | 触发 `runSync` 后恢复极简 | 巡检捕获后自动迁移移入共享冷库 |
-
----
-
-## 本 Skill 功能特点 (What This Skill Can Do)
-
-1. **0 开局底座 Token 空间释放**：通过建立全平台统一共享私有冷库 (`~/.agents/skills_archive/`)，将开局预载开销从 9,757 压降至 500 Tokens 以内（降低 95%+）。
-2. **全平台统一共享私有冷库**：自动建立跨 Agent / IDE 统一共享冷库 (`~/.agents/skills_archive/`)，在 Antigravity、Trae、Claude Code 或 Cursor 中积累的私有技能，全端 0ms 极速共享复用！
-3. **分优先级按需调度装载**：严格按优先级（项目目录 > 共享冷库 > 云端库）调度，本项目所需技能精准拉取并收拢在当前项目目录（`./.agents/skills/`）中，资源与状态一目了然！
-4. **零沟通代码依赖自动推断**：自动扫描项目代码（`package.json` / `requirements.txt` / `.glsl` / `.swift`），零沟通自动匹配并装载对应技能。
-5. **全网多云端源与本地注册表无缝级联**：支持 Vercel、Upskill 安全库、GitHub 官方组织仓库 (`owner/repo`)、国内极速 CDN 及团队私有库。
-6. **透明 Token 汇报卡与 100% 来源追溯**：项目首轮或随时使用 `/status` 输出极简健康汇报卡，精准标注每个技能的来源出处与推断依据。
-7. **Prompt Cache 缓存锚点注入**：自动在装载技能中注入 `<!-- @cache-control: ephemeral -->` 头部，提高 4 倍响应速度并降低 90% 费用。
 
 ---
 
@@ -239,7 +228,7 @@ node scripts/orchestrate.js cleanup # 或 npm run cleanup
 
 ## 变更与迭代历史 (Changelog)
 
-- **v2.6.1 (2026-07-28)**：在 README 痛点表格中增加“私有技能碎片化”条目，并在功能特点中突出“全平台统一共享私有冷库”的跨 IDE 无缝复用能力。
+- **v2.6.2 (2026-07-28)**：在 README 首页将“核心痛点”与“功能特点”直接合并为高对比大表，彻底消除重复排版。
 - **v2.6.0 (2026-07-28)**：全面升级架构为全平台统一共享私有冷库 (`~/.agents/skills_archive/`)。
 - **v2.5.0 (2026-07-28)**：新增整合 5 维多源自动推断逻辑章节。
 - **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块。
