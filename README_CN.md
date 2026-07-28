@@ -50,6 +50,51 @@ npx skills add amasun/skill-orchestrator
 
 ---
 
+## 🏗️ 架构设计与可视化图示 (Architecture Diagrams)
+
+### 1. 三级混合拓扑架构图 (3-Tier Hybrid Architecture)
+
+```mermaid
+flowchart TD
+    classDef hotStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
+    classDef coldStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
+    classDef cloudStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+    classDef phaseStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
+
+    subgraph STORAGE["三级存储与技能源"]
+        direction TB
+        HotCore["1. 全局热存储 (Hot Core)<br>config/skills/<br>仅 2-3 个通用基础 Skill<br>(占用 Tokens &le; 500)"]:::hotStyle
+        ColdArchive["2. 全平台统一共享私有冷库 (Unified Shared Cold Vault)<br>~/.agents/skills_archive/<br>跨 IDE 共享私有定制 Skill<br>(占用 Tokens = 0)"]:::coldStyle
+        VercelCloud["3. Vercel 云端插件库 (Vercel Cloud Registry)<br>vercel-labs/skills API<br>海量开源社区 Skill 资源库<br>(占用 Tokens = 0)"]:::cloudStyle
+    end
+
+    subgraph LIFECYCLE["项目生命周期全流程"]
+        direction TB
+        P1["Phase 1: 需求讨论期<br>・项目目录 0 技能<br>・极速沟通产品文档/架构<br>・Tokens 0 额外开销"]:::phaseStyle
+        P2["Phase 2: 级联匹配与多源依赖推断<br>・Auto-Infer: 自动扫配置文件/后缀<br>・1st 优先检索: 共享私有冷库<br>・2nd 云端拉取: Vercel 云端库<br>・首轮自动输出多源标注与 Token 健康卡"]:::phaseStyle
+        P3["Phase 3: 核心开发与单向增量<br>・常驻项目专属技能<br>・中途新需求: 增量补充<br>・严禁中途频繁删除 (防废料)"]:::phaseStyle
+        P4["Phase 4: 大版本交付与清理<br>・项目大版本完结<br>・统一清理项目下 .agents/skills/<br>・恢复项目干净状态"]:::phaseStyle
+
+        P1 --> P2 --> P3 --> P4
+    end
+
+    ColdArchive -.->|优先级 1: 私有匹配| P2
+    VercelCloud -.->|优先级 2: 云端拉取| P2
+```
+
+### 2. 手动 `npx` 安装自动捕获巡检图 (Manual Skill Auto-Sync)
+
+```mermaid
+flowchart TD
+    UserAction["用户手动在终端执行:<br>npx skills add (新技能名)"] --> PublicFolder["放置于公共目录:<br>config/skills/"]
+    PublicFolder --> Trigger["AI 开启新对话 或 运行 so-sync"]
+    Trigger --> Detect["runSync() 自动差异比对:<br>发现非 Core 的新增技能文件夹"]
+    Detect --> Migrate["自动迁移到共享私有冷库:<br>Move 新技能 到 ~/.agents/skills_archive/"]
+    Migrate --> Result["全局开局 Token 瞬间恢复极简状态 (&le; 500 Tokens)!"]
+```
+
+---
+
 ## 📊 Token 诊断汇报卡 (Token Telemetry Card)
 
 使用 `so-status` 随时唤醒透明的健康卡片：

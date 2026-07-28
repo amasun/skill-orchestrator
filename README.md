@@ -50,6 +50,51 @@ npx skills add amasun/skill-orchestrator
 
 ---
 
+## 🏗️ Architecture & Visualization Diagrams
+
+### 1. 3-Tier Hybrid Architecture
+
+```mermaid
+flowchart TD
+    classDef hotStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
+    classDef coldStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
+    classDef cloudStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+    classDef phaseStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
+
+    subgraph STORAGE["3-Tier Storage & Skill Sources"]
+        direction TB
+        HotCore["1. Hot Core Base Storage<br>config/skills/<br>2-3 Universal Base Skills Only<br>(Tokens Overhead &le; 500)"]:::hotStyle
+        ColdArchive["2. Unified Shared Private Cold Vault<br>~/.agents/skills_archive/<br>Cross-IDE Shared Custom Skills<br>(Tokens Overhead = 0)"]:::coldStyle
+        VercelCloud["3. Vercel Cloud Registry<br>vercel-labs/skills API<br>Massive Open-Source Skill Library<br>(Tokens Overhead = 0)"]:::cloudStyle
+    end
+
+    subgraph LIFECYCLE["Project Lifecycle Workflow"]
+        direction TB
+        P1["Phase 1: Product Requirements<br>・0 Project-level skills<br>・Fast discussion on docs & architecture<br>・0 Extra Token Overhead"]:::phaseStyle
+        P2["Phase 2: Cascade Resolution & Inference<br>・Auto-Infer: Scans configs & extensions<br>・1st Priority: Shared Cold Vault<br>・2nd Priority: Vercel Cloud Registry<br>・Outputs source origins & Token health card"]:::phaseStyle
+        P3["Phase 3: Development & Incremental Addition<br>・Project-scoped skills loaded<br>・Mid-project additions handled incrementally<br>・Frequent deletions prohibited to prevent waste"]:::phaseStyle
+        P4["Phase 4: Milestone Cleanup<br>・Project milestone completion<br>・Wipes project .agents/skills/<br>・Restores clean 0-token state"]:::phaseStyle
+
+        P1 --> P2 --> P3 --> P4
+    end
+
+    ColdArchive -.->|Priority 1: Cold Vault Match| P2
+    VercelCloud -.->|Priority 2: Cloud Fallback Pull| P2
+```
+
+### 2. Manual Skill Auto-Sync Flow
+
+```mermaid
+flowchart TD
+    UserAction["User manually runs:<br>npx skills add <name>"] --> PublicFolder["Placed in public directory:<br>config/skills/"]
+    PublicFolder --> Trigger["AI starts new chat OR runs so-sync"]
+    Trigger --> Detect["runSync() detects diff:<br>Finds newly added non-base skill"]
+    Detect --> Migrate["Auto-migrates to cold vault:<br>Move skill to ~/.agents/skills_archive/"]
+    Migrate --> Result["Global base tokens instantly reset to minimal (&le; 500 Tokens)!"]
+```
+
+---
+
 ## 📊 Token Telemetry Health Card
 
 Use `so-status` to display the transparent Token health report:
