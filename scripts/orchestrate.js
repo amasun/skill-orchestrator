@@ -168,7 +168,7 @@ function resolveMaxSkillsLimit(projectCwd = process.cwd()) {
         } catch (e) {}
     }
 
-    return 5;
+    return 10; // Default capacity tuned for suite skills like GSAP / BigQuery
 }
 
 // -------------------------------------------------------------------
