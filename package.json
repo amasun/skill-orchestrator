@@ -1,6 +1,6 @@
 {
   "name": "skill-orchestrator",
-  "version": "3.5.0",
+  "version": "3.5.1",
   "description": "Dynamic Project Skill Orchestrator for AI Agents - 0 Base Token Optimization (v3.3.2 Double-Bilingual Docs & Node.js Self-Healing Edition)",
   "repository": {
     "type": "git",
