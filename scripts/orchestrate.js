@@ -87,6 +87,18 @@ function injectCacheControl(skillDir, originInfo) {
     }
 }
 
+// Helper: Create 15-token Stub Placeholder at original path to satisfy client UI checks without polluting base tokens
+function createStubPlaceholder(originalPath, skillName) {
+    try {
+        if (fs.existsSync(originalPath)) {
+            fs.rmSync(originalPath, { recursive: true, force: true });
+        }
+        ensureDir(originalPath);
+        const stubMd = `---\nname: ${skillName}\ndescription: Archived into cold vault (~/.agents/skills_archive). Auto-loaded on demand.\n---\n# ${skillName} (Archived)\nAuto-loaded on demand by skill-orchestrator.\n`;
+        fs.writeFileSync(path.join(originalPath, 'SKILL.md'), stubMd, 'utf-8');
+    } catch (err) {}
+}
+
 // -------------------------------------------------------------------
 // Module 3: 5-Registry Cascade Resolution Engine (Vercel, Upskill, GitHub Orgs, CDN, Fallback)
 // -------------------------------------------------------------------
@@ -310,10 +322,10 @@ function runStatus(projectCwd = process.cwd()) {
 }
 
 // -------------------------------------------------------------------
-// Standard Actions: Init, Sync, Status, Cleanup (Symlink Preserved)
+// Standard Actions: Init, Sync, Status, Cleanup (Stub Placeholder Preserved)
 // -------------------------------------------------------------------
 function runInit() {
-    console.log('🚀 Consolidating Local Private Skills across all Agents into Unified Shared Vault (Symlink Preserved)...');
+    console.log('🚀 Consolidating Local Private Skills into Unified Shared Vault (Stub Preserved)...');
     ensureDir(ARCHIVE_DIR);
     let totalConsolidated = 0;
 
@@ -326,16 +338,14 @@ function runInit() {
                     const targetPath = path.join(ARCHIVE_DIR, item);
                     if (!fs.existsSync(targetPath)) {
                         try {
+                            // Copy full skill content to cold archive vault
                             fs.cpSync(fullPath, targetPath, { recursive: true });
-                            fs.rmSync(fullPath, { recursive: true, force: true });
                             
-                            // Create Symlink / Junction at original path so Official Client UIs (Claude Desktop) don't prompt for re-download
-                            try {
-                                fs.symlinkSync(targetPath, fullPath, 'junction');
-                            } catch (symErr) {}
+                            // Replace original location with 15-token Stub Placeholder to satisfy client UI checks
+                            createStubPlaceholder(fullPath, item);
 
                             totalConsolidated++;
-                            console.log(`📦 Consolidated private asset [${item}] -> Unified Shared Vault (Symlink Active)`);
+                            console.log(`📦 Consolidated private asset [${item}] -> Unified Shared Vault (Stub Preserved)`);
                         } catch (e) {}
                     }
                 }
@@ -360,16 +370,14 @@ function runSync() {
                     const targetPath = path.join(ARCHIVE_DIR, item);
                     if (!fs.existsSync(targetPath)) {
                         try {
+                            // Copy full skill content to cold archive vault
                             fs.cpSync(fullPath, targetPath, { recursive: true });
-                            fs.rmSync(fullPath, { recursive: true, force: true });
-
-                            // Create Symlink / Junction at original path
-                            try {
-                                fs.symlinkSync(targetPath, fullPath, 'junction');
-                            } catch (symErr) {}
+                            
+                            // Replace original location with 15-token Stub Placeholder
+                            createStubPlaceholder(fullPath, item);
 
                             totalSynced++;
-                            console.log(`📦 Auto-synced [${item}] -> Unified Shared Vault (Symlink Active)`);
+                            console.log(`📦 Auto-synced [${item}] -> Unified Shared Vault (Stub Preserved)`);
                         } catch (e) {}
                     }
                 }
@@ -419,10 +427,10 @@ switch (command) {
         break;
     default:
         console.log(`
-Skill Orchestrator Engine (v2.8) - Symlink Preserved Edition
+Skill Orchestrator Engine (v2.9) - Stub Placeholder Edition
 
 Usage:
-  node scripts/orchestrate.js init    - Consolidate local private skills into Unified Shared Vault (Symlink Preserved)
+  node scripts/orchestrate.js init    - Consolidate local private skills into Unified Shared Vault (Stub Preserved)
   node scripts/orchestrate.js infer   - Infer dependencies from project stack & auto-load skills
   node scripts/orchestrate.js sync    - Auto-detect manual npx skills & migrate to vault
   node scripts/orchestrate.js status  - Display active vs archived skills token telemetry
