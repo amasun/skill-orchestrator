@@ -37,19 +37,19 @@ npx skills add amasun/skill-orchestrator
 ### CLI Commands (For Developers & Automation)
 ```bash
 # 1. Multi-Source Dependency Auto-Inference (Scans configs, file extensions & package.json)
-node scripts/orchestrate.js infer   # or npm run infer
+npx skill-orchestrator infer   # or skill-orchestrator infer
 
 # 2. Auto-Sync scanner: Migrates manually installed npx skills to shared cold vault
-node scripts/orchestrate.js sync    # or npm run sync
+npx skill-orchestrator sync    # or skill-orchestrator sync
 
 # 3. Token Budget Diagnostic Dashboard / Telemetry Report
-node scripts/orchestrate.js status  # or npm run status
+npx skill-orchestrator status  # or skill-orchestrator status
 
 # 4. Project Milestone Cleanup (Wipes project-level temporary skills)
-node scripts/orchestrate.js cleanup # or npm run cleanup
+npx skill-orchestrator cleanup # or skill-orchestrator cleanup
 
 # 5. Smart Offboarding Eject (Restores skills to original IDE paths & uninstalls safely)
-node scripts/orchestrate.js eject   # or npm run eject
+npx skill-orchestrator eject   # or skill-orchestrator eject
 ```
 
 ---

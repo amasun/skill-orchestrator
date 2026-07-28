@@ -37,19 +37,19 @@ npx skills add amasun/skill-orchestrator
 ### 命令行工具操作（开发者备用）
 ```bash
 # 1. 多源依赖自动推断 (自动读取配置文件/代码后缀零沟通匹配技能)
-node scripts/orchestrate.js infer   # 或 npm run infer
+npx skill-orchestrator infer   # 或 skill-orchestrator infer
 
 # 2. 自动巡检检测用户手动 npx 安装的新技能并移入共享冷库
-node scripts/orchestrate.js sync    # 或 npm run sync
+npx skill-orchestrator sync    # 或 skill-orchestrator sync
 
 # 3. Token 预算诊断仪表盘 / 汇报卡手动唤醒 (查看精确 Token 占用与健康度)
-node scripts/orchestrate.js status  # 或 npm run status
+npx skill-orchestrator status  # 或 skill-orchestrator status
 
 # 4. 项目结项一键清理
-node scripts/orchestrate.js cleanup # 或 npm run cleanup
+npx skill-orchestrator cleanup # 或 skill-orchestrator cleanup
 
 # 5. 退出机制 (还原所有归档技能至全局目录并彻底卸载，0 数据丢失)
-node scripts/orchestrate.js eject   # 或 npm run eject
+npx skill-orchestrator eject   # 或 skill-orchestrator eject
 ```
 
 ---
