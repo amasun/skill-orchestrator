@@ -90,6 +90,25 @@ function recordSkillOrigin(skillName, originalPath) {
     } catch (e) {}
 }
 
+// Persist project used skills list into project's package.json
+function recordSkillToProjectPackageJson(skillName, projectCwd = process.cwd()) {
+    const packageJsonPath = path.join(projectCwd, 'package.json');
+    if (!fs.existsSync(packageJsonPath)) return;
+    try {
+        const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+        if (!pkg['skill-orchestrator']) {
+            pkg['skill-orchestrator'] = {};
+        }
+        if (!Array.isArray(pkg['skill-orchestrator'].skills)) {
+            pkg['skill-orchestrator'].skills = [];
+        }
+        if (!pkg['skill-orchestrator'].skills.includes(skillName)) {
+            pkg['skill-orchestrator'].skills.push(skillName);
+            fs.writeFileSync(packageJsonPath, JSON.stringify(pkg, null, 2), 'utf-8');
+        }
+    } catch (e) {}
+}
+
 // Safely delete directory or symlink without throwing
 function safeRemove(targetPath) {
     try {
@@ -128,7 +147,7 @@ function safeCopy(sourcePath, targetPath) {
 }
 
 // Multi-tier user customization for Token Guard Limit
-// Priority: CLI Flag -> Env Var -> Project package.json -> Global Config (~/.agents/config.json) -> Default 5
+// Priority: CLI Flag -> Env Var -> Project package.json -> Global Config (~/.agents/config.json) -> Default 10
 function resolveMaxSkillsLimit(projectCwd = process.cwd()) {
     const args = process.argv.slice(2);
     for (let i = 0; i < args.length; i++) {
@@ -168,7 +187,7 @@ function resolveMaxSkillsLimit(projectCwd = process.cwd()) {
         } catch (e) {}
     }
 
-    return 10; // Default capacity tuned for suite skills like GSAP / BigQuery
+    return 10;
 }
 
 // -------------------------------------------------------------------
@@ -248,22 +267,12 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = '需求意图', p
     const sanitizeName = skillName.split('/').pop();
     const projectTargetPath = path.join(projectCwd, '.agents', 'skills', sanitizeName);
 
-    const maxSkillsLimit = resolveMaxSkillsLimit(projectCwd);
+    // Record skill into project's package.json history manifest for zero-loss recovery after cleanup
+    recordSkillToProjectPackageJson(sanitizeName, projectCwd);
 
     // Source 1: Local Project Scope (Short-circuit if already present)
     if (fs.existsSync(projectTargetPath)) {
         return { success: true, origin: '来源: 本项目已已有', reason: inferReason };
-    }
-
-    // Check current project skills count for limit warnings
-    const projectSkillsDir = path.join(projectCwd, '.agents', 'skills');
-    if (fs.existsSync(projectSkillsDir)) {
-        try {
-            const existingItems = fs.readdirSync(projectSkillsDir).filter(i => !i.startsWith('.'));
-            if (existingItems.length >= maxSkillsLimit) {
-                console.warn(`\n⚠️ Capacity Notice: Project already has ${existingItems.length} active skills (Limit: ${maxSkillsLimit}). Consider running 'node scripts/orchestrate.js cleanup' to clear temporary skills.`);
-            }
-        } catch (e) {}
     }
 
     // Source 2: Unified Shared Cold Archive Vault (~/.agents/skills_archive/)
@@ -331,14 +340,23 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = '需求意图', p
 // Module 1 Execution: Multi-Source Dependency & AST Auto-Inference
 // -------------------------------------------------------------------
 function runInfer(projectCwd = process.cwd()) {
-    console.log('🔍 Running Multi-Source Dependency Auto-Inference...');
+    console.log('🔍 Running Multi-Source Dependency Auto-Inference & Manifest Sync...');
     let matchedSkills = new Map();
 
-    // Source A: package.json
+    // Source 0: Read recorded skills from project's package.json ("skill-orchestrator": { "skills": [...] })
     const packageJsonPath = path.join(projectCwd, 'package.json');
     if (fs.existsSync(packageJsonPath)) {
         try {
             const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+            
+            // Read saved skills manifest
+            if (pkg['skill-orchestrator'] && Array.isArray(pkg['skill-orchestrator'].skills)) {
+                pkg['skill-orchestrator'].skills.forEach(skill => {
+                    matchedSkills.set(skill, '项目历史清单 (package.json)');
+                });
+            }
+
+            // Read dependencies
             const allDeps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
             Object.keys(allDeps).forEach(dep => {
                 if (DEPENDENCY_MAP[dep]) {
@@ -597,6 +615,7 @@ function runCleanup(projectCwd = process.cwd()) {
         try {
             safeRemove(projectSkillsDir);
             console.log(`✅ Removed temporary project skills from: ${projectSkillsDir}`);
+            console.log(`💡 Note: Used skills manifest remains preserved in package.json for 1-click restore via 'infer'.`);
         } catch (err) {
             console.error(`❌ Failed to cleanup ${projectSkillsDir}: ${err.message}`);
         }
@@ -691,14 +710,14 @@ switch (command) {
         break;
     default:
         console.log(`
-Skill Orchestrator Engine (v3.2.1) - Token Guard & Dynamic Path Registry Edition
+Skill Orchestrator Engine (v3.2.4) - Zero-Loss History Manifest Edition
 
 Usage:
   node scripts/orchestrate.js init      - Dynamically discover IDEs, record original paths & consolidate to Vault
-  node scripts/orchestrate.js infer     - Infer dependencies from project stack & auto-load skills (--limit=N)
+  node scripts/orchestrate.js infer     - Infer dependencies & restore package.json skills manifest (--limit=N)
   node scripts/orchestrate.js sync      - Auto-detect manual npx skills, update registry & migrate to vault
   node scripts/orchestrate.js status    - Display active vs archived skills token telemetry
-  node scripts/orchestrate.js cleanup   - Clean up project-level skills
+  node scripts/orchestrate.js cleanup   - Clean up project-level skills (keeps package.json manifest)
   node scripts/orchestrate.js eject     - 100% exact path restoration via vault_registry.json & uninstall
         `);
         break;
