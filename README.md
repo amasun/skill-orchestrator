@@ -66,43 +66,35 @@ so-cleanup # or npx skill-orchestrator cleanup
 so-eject   # or npx skill-orchestrator eject
 ```
 
-## ❓ Frequently Asked Questions (FAQ / Q&A)
+## ❓ User Usage FAQ (Q&A)
 
-### Q1: What is the difference between Base Skills and Cold Archive Skills?
-**A**:
-- **Base Skills** (e.g. `agentic-workflow`, `find-skills`, `skill-orchestrator`, `z-coding-refactoring`): Preloaded in memory (~500 - 8,700 tokens) for continuous core workflow & refactoring capabilities.
-- **Cold Archive Skills** (stored in `~/.agents/skills_archive/`): Cost **0 Tokens** at startup, and 0ms hot-loaded to `<Project>/.agents/skills/` on-demand or upon direct name mention.
+### Q1: Do I need to manually run CLI commands during normal coding?
+**A**: No! Simply chat with your AI agent as usual (e.g., *"Build a 3D portfolio"* or *"Refactor this code"*). The AI automatically infers, matches, and hot-loads skills on-demand without manual CLI commands.
 
-### Q2: Why use twin files (`so_skills_registry.md` & `so_skills_registry.json`)?
-**A**:
-- `so_skills_registry.md` is the **Human Control Panel**: Provides visual checkmarks `[x]` / `[ ]` and domain categories (`🎨 UI/UX`, `🎨 Figma`, `🛠️ Engineering`, `📊 BigData`, `📄 Docs`).
-- `so_skills_registry.json` is the **Machine Engine Index**: Stores 100% complete YAML descriptions and trigger phrases to guarantee zero AI semantic loss.
+### Q2: How can I invoke a specific skill from the cold vault by name?
+**A**: Simply mention the skill name in your prompt (e.g., `apple-design` or `3d-web-experience`). The AI agent silently hot-loads the skill into the project in 0ms with zero manual file copying.
 
-### Q3: Will the AI detect a cold skill if I directly mention its name in chat?
-**A**: Yes! Supports the **Direct Name Mention Protocol**. Mentioning skills like `"apple-design"` or `"3d-web-experience"` silently hot-loads them from the cold vault into the project.
+### Q3: Why don't some skills show up in the IDE `$` autocomplete dropdown menu?
+**A**: Base Meta-Skills fully support `$` autocomplete. Cold Archive Skills are kept in 0-Token cold storage (to save budget); mentioning their name directly in chat instantly triggers 0ms hot loading.
 
-### Q4: Does typing `$` still autocomplete cold skills in the chat UI?
-**A**: Base skills support `$` / `/` autocomplete. Cold skills are not in the native UI dropdown list, but direct natural language mentions trigger instant 0ms hot loading.
+### Q4: How do I check active skills and Token overhead for my current project?
+**A**: Send `so-status` (or `/so-status` / ask the AI *"Check token overhead"*). The orchestrator returns a transparent Token Telemetry card.
 
-### Q5: Does truncated Markdown affect AI skill comprehension?
-**A**: No. The AI agent reads full YAML descriptions from `so_skills_registry.json` during inference.
+### Q5: How do I clean up temporary project skill files after completing a project?
+**A**: Send `so-cleanup` (or `/so-cleanup`) to wipe project-level temporary skill files and return them to the global 0-token cold archive vault.
 
-### Q6: Are newly discovered skills auto-categorized?
-**A**: Yes. Heuristic domain classifier automatically routes new skills into appropriate domain blocks in `so_skills_registry.md`.
+### Q6: How can I manually disable or enable specific skills?
+**A**: Open [so_skills_registry.md](file:///C:/Users/Amasun-PC/.agents/so_skills_registry.md) and check `[x]` or uncheck `[ ]` next to any skill. Save the file to apply immediately.
 
-### Q7: How to use `so` and `so-xxx` short alias directives?
-**A**: `so` is the alias for `skill-orchestrator`. Directives include `so-status`, `so-infer`, `so-sync`, `so-cleanup`, `so-eject`, and `so-merge`.
+### Q7: If I manually install a new skill with `npx skills add`, will it be auto-archived?
+**A**: Yes! Send `so-sync` (or `/so-sync`). The orchestrator automatically detects the new skill, moves it to the cold archive, and categorizes it in the Markdown panel.
 
-### Q8: Is legacy `global-skills-manager` still kept?
-**A**: Deprecated and physically removed. System uses `so_skills_registry` twin files exclusively.
+### Q8: How can I safely uninstall and restore all skills to original IDE paths?
+**A**: Send `so-eject` (or `/so-eject`). The system restores 100% of archived skills back to their original IDE folders with 0 data loss and uninstalls safely.
 
-### Q9: Are cold skills updated when npm or cloud skills update?
-**A**: Yes. Running `so-sync` updates cold archive skills with the latest local/cloud versions.
+---
 
-### Q10: How to safely uninstall and restore original IDE paths? (Eject)
-**A**: Run `so-eject` to move all cold vault skills back to their original IDE folders with 0 data loss.
-
-### ⚙️ User-Customized Base Skills Whitelist (`~/.agents/base_skills.json`)
+## ⚙️ User-Customized Base Skills Whitelist (`~/.agents/base_skills.json`)
 
 The orchestrator automatically manages a whitelist configuration at `~/.agents/base_skills.json` and evaluates skills using an AI Semantic Skill Analyzer. Universal meta-skills (Workflow/Refactoring/Debug) are automatically preserved in your primary IDE base:
 
