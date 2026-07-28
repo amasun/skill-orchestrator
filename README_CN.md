@@ -6,26 +6,37 @@
 
 ---
 
-## 🌟 用户核心功能与优势 (User Features & Benefits)
+## 🔥 核心痛点与功能特点 (Pain Points & Core Capabilities)
 
-1. **⚡ 0 开局 Token 预算释放**：
-   将数十个领域技能归档入全局冷库，开局上下文降低 95%+，对话速度提升 4 倍，大幅节省 Token 费用。
+在传统模式下，所有的 AI Agent 技能（Skills）都会在开局对话中被一次性预加载，导致极其严重的上下文浪费与私有资产碎片化。`skill-orchestrator` 通过建立全平台统一共享冷库与代码级动态推导，彻底解决了这一问题：
 
-2. **🌐 全平台跨 IDE 资产共享**：
-   在 Antigravity、Trae、Claude Code、Cursor、Windsurf 之间共享同一个私有冷库 (`~/.agents/skills_archive/`)，一次积累，全端通用。
-
-3. **💬 直呼技能名 0ms 热激活**：
-   无需敲繁琐命令行！在对话里直接说出技能名字（如 `apple-design` 或 `3d-web-experience`），AI 自动在后台秒级激活使用。
-
-4. **🎨 分类可视化操控面板**：
-   打开用户目录下的控制面板 [so_skills_registry.md](file:///C:/Users/Amasun-PC/.agents/so_skills_registry.md)，支持按领域（动效、Figma、工程、大数据、文档）直接打勾 `[x]` 或取消 `[ ]` 切换技能开关。
-
-5. **⚡ 快捷指令系统 (`so-xxx`)**：
-   提供 `so-status`（查 Token 健康卡）、`so-infer`（依赖匹配）、`so-sync`（同步冷库）、`so-cleanup`（结项清理）、`so-eject`（安全还原卸载）等极简交互。
+| 痛点问题 (Pain Point) | 传统模式 (All Preloaded) | 本策略架构 (Skill Orchestrator v3.8.0) | 核心功能特点 (Key Capability) |
+| :--- | :--- | :--- | :--- |
+| **开局 Token 占用** | ~9,757 Tokens (占用近 50% 预算槽) | **~0 - 500 Tokens** (降低 95%+) | **0 开局底座空间释放**：极简热底座与本地私有冷库隔离 |
+| **双轨人机操控面板** | 配置文件零碎分散且不易直观查看 | **`so_skills_registry` 孪生双轨** | **双轨控制系统**：Markdown 可视化控制面板与 JSON 引擎 |
+| **私有技能碎片化** | 各 Agent / IDE 目录独立分散、重复拷贝 | **全平台统一共享冷库** (`~/.agents/skills_archive/`) | **全平台统一资产库**：在 Antigravity/Trae/Claude 全端 0ms 共享 |
+| **技能调度与收拢** | 全局污染，项目间乱拉乱装 | **分优先级按需调度装载** (项目 > 共享冷库 > 云端) | **项目局部精准收拢**：所有项目技能精准收拢在 `./.agents/skills/` |
+| **技能推断维度** | 依赖人类口语描述与 LLM 语义猜测 | **代码层 5 维自动推断** (扫 `package.json`/后缀/意图) | **零沟通代码依赖推断**：自动扫配置文件与 `.glsl`/`.swift` 等后缀 |
+| **快捷指令与别名** | 依赖记冗长 CLI 命令或手动拷贝 | **`so` 与 `so-xxx` 快捷别名指令** | **极简交互**：`so-status`, `so-infer`, `so-sync`, `so-cleanup` |
 
 ---
 
-## 🚀 安装与快捷指令 (Quick Start & Commands)
+## ⚡ 快捷指令与自然语言触发 (Shortcuts & Natural Language Triggers)
+
+在 AI 对话框中，无需记忆命令行，直接使用**快捷别名指令**、**斜杠指令**或**自然语言口语**即可唤醒后台操作：
+
+| 快捷指令 / 别名 (最推荐) | 斜杠 / 替代语法 | 自然语言口语表述 | 后台自动执行 |
+| :--- | :---: | :--- | :--- |
+| **`so-status`** | `/so-status` / `so status` | **“查看 Token 占用”、“技能诊断”、“查看控制面板”** | `npx skill-orchestrator status` |
+| **`so-infer`** | `/so-infer` / `so infer` | **“检查依赖”、“自动匹配技能”、“根据代码推演”** | `npx skill-orchestrator infer` |
+| **`so-sync`** | `/so-sync` / `so sync` | **“刚才 npx 装了新技能，整理一下”、“同步冷库”** | `npx skill-orchestrator sync` |
+| **`so-merge`** | `/so-merge` / `so merge` | **“清理重复技能副本”、“合并冷库去重”** | `npx skill-orchestrator merge` |
+| **`so-cleanup`** | `/so-cleanup` / `so cleanup` | **“项目开发完成了”、“清理临时技能”、“恢复干净”** | `npx skill-orchestrator cleanup` |
+| **`so-eject`** | `/so-eject` / `so eject` | **“恢复技能并卸载”、“退出调度管理”** | `npx skill-orchestrator eject` |
+
+---
+
+## 🚀 安装与快捷指令 (Quick Start & Usage)
 
 ### 1. 通过 NPM 官方注册表安装
 ```bash
@@ -35,27 +46,6 @@ npx skills add skill-orchestrator
 ### 2. 通过 GitHub 仓库直接安装
 ```bash
 npx skills add amasun/skill-orchestrator
-```
-
-### 快捷指令 (`so-xxx`)
-```bash
-# 1. 查阅 Token 诊断卡与技能控制面板
-so-status  # 或 npx skill-orchestrator status
-
-# 2. 多源依赖自动推断 (零沟通匹配代码与技能)
-so-infer   # 或 npx skill-orchestrator infer
-
-# 3. 自动同步冷库与更新可视化控制面板
-so-sync    # 或 npx skill-orchestrator sync
-
-# 4. 技能合并与去重引擎 (清理重复技能副本)
-so-merge   # 或 npx skill-orchestrator merge
-
-# 5. 项目结项一键清理 (退回 0-Token 共享冷库，恢复干净状态)
-so-cleanup # 或 npx skill-orchestrator cleanup
-
-# 6. 退出机制 (彻底还原所有技能并安全卸载，数据 0 丢失)
-so-eject   # 或 npx skill-orchestrator eject
 ```
 
 ---

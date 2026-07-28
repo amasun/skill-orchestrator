@@ -6,26 +6,37 @@
 
 ---
 
-## 🌟 User Features & Key Benefits
+## 🔥 Pain Points & Core Capabilities
 
-1. **⚡ Zero Base Token Context Release**:
-   Archives 66+ domain skills into a shared cold vault, reducing base context overhead by 95%+ and accelerating response speeds by 4x.
+In traditional setups, all AI Agent Skills are preloaded upfront into every conversation, leading to massive context waste and fragmented private assets. `skill-orchestrator` resolves this by maintaining a unified shared cold archive vault and code-level dynamic skill inference:
 
-2. **🌐 Unified Cross-IDE Shared Asset Vault**:
-   Shares a single private cold vault (`~/.agents/skills_archive/`) across Antigravity, Trae, Claude Code, Cursor, and Windsurf. Collect once, use everywhere.
-
-3. **💬 Direct Skill Name Mention Auto-Activation**:
-   No manual CLI commands needed! Simply mention a skill name in chat (e.g. `apple-design` or `3d-web-experience`), and the AI silently activates it in 0ms.
-
-4. **🎨 Categorized Visual Control Panel**:
-   Open [so_skills_registry.md](file:///C:/Users/Amasun-PC/.agents/so_skills_registry.md) to toggle skills on `[x]` or off `[ ]` across domain categories (UI/UX, Figma, Engineering, BigData, Docs).
-
-5. **⚡ Short Aliases & Directives (`so-xxx`)**:
-   Provides simple directives: `so-status` (Health Card), `so-infer` (Dependency Matching), `so-sync` (Vault Sync), `so-cleanup` (Project Cleanup), and `so-eject` (Safe Restore).
+| Pain Point | Traditional Mode (All Preloaded) | Skill Orchestrator (v3.8.0 Architecture) | Key Capability |
+| :--- | :--- | :--- | :--- |
+| **Base Token Overhead** | ~9,757 Tokens (Uses ~50% context budget) | **~0 - 500 Tokens** (Reduced by 95%+) | **0 Base Token Release**: Minimal hot base isolated from private cold vault |
+| **Twin Human-Machine Panel** | Scattered config files hard to inspect visually | **`so_skills_registry` Twin Files** | **Twin Control System**: Markdown human UI panel & JSON machine engine |
+| **Private Skill Fragmentation**| Isolated & duplicated across agent/IDE folders | **Unified Shared Cold Vault** (`~/.agents/skills_archive/`) | **Unified Cross-IDE Assets**: 0ms shared across Antigravity/Trae/Claude |
+| **Skill Lifecycle & Scope** | Global pollution, chaotic project loading | **Priority-Based Dynamic Loading** (Project > Cold Vault > Cloud) | **Project-Local Encapsulation**: Skills cleanly scoped in `./.agents/skills/` |
+| **Skill Inference Dimensions**| Relies on verbal user description & LLM guesses | **5-Dimension Code Inference** (Scans `package.json`/extensions/intent) | **Zero-Friction Inference**: Auto-scans config files & `.glsl`/`.swift` extensions |
+| **Short Aliases & Directives** | Relies on memorizing long CLI commands | **`so` and `so-xxx` Quick Directives** | **Frictionless Control**: `so-status`, `so-infer`, `so-sync`, `so-cleanup` |
 
 ---
 
-## 🚀 Quick Start & Commands
+## ⚡ Shortcuts & Natural Language Triggers
+
+In the AI chat box, use **quick alias directives**, **slash commands**, or **natural language statements** directly to trigger backend operations:
+
+| Quick Directive / Alias (Recommended) | Slash Syntax | Natural Language Statement | Target Backend Execution |
+| :--- | :---: | :--- | :--- |
+| **`so-status`** | `/so-status` / `so status` | **"Check token overhead", "Skill diagnostics", "View control panel"** | `npx skill-orchestrator status` |
+| **`so-infer`** | `/so-infer` / `so infer` | **"Check dependencies", "Auto match skills", "Deduce from code"** | `npx skill-orchestrator infer` |
+| **`so-sync`** | `/so-sync` / `so sync` | **"Organize newly installed skills", "Sync cold vault"** | `npx skill-orchestrator sync` |
+| **`so-merge`** | `/so-merge` / `so merge` | **"Clean duplicate skills", "Merge cold vault"** | `npx skill-orchestrator merge` |
+| **`so-cleanup`** | `/so-cleanup` / `so cleanup` | **"Project completed", "Clean temporary skills", "Restore clean state"** | `npx skill-orchestrator cleanup` |
+| **`so-eject`** | `/so-eject` / `so eject` | **"Restore skills and uninstall", "Eject orchestrator"** | `npx skill-orchestrator eject` |
+
+---
+
+## 🚀 Quick Start & Usage
 
 ### 1. Install via Official NPM Registry
 ```bash
@@ -35,27 +46,6 @@ npx skills add skill-orchestrator
 ### 2. Install via GitHub Repository
 ```bash
 npx skills add amasun/skill-orchestrator
-```
-
-### Quick Directives (`so-xxx`)
-```bash
-# 1. Inspect Token budget health card & control panel
-so-status  # or npx skill-orchestrator status
-
-# 2. Auto-infer dependencies based on project code & stack
-so-infer   # or npx skill-orchestrator infer
-
-# 3. Synchronize cold vault & update visual control panel
-so-sync    # or npx skill-orchestrator sync
-
-# 4. Merge & deduplicate cold archive skills
-so-merge   # or npx skill-orchestrator merge
-
-# 5. Project milestone cleanup (Return to 0-Token cold state)
-so-cleanup # or npx skill-orchestrator cleanup
-
-# 6. Eject & safely restore all skills to original IDE paths
-so-eject   # or npx skill-orchestrator eject
 ```
 
 ---
