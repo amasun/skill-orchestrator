@@ -675,12 +675,29 @@ function runMerge() {
 
             paths.forEach(p => {
                 if (path.normalize(p) !== path.normalize(targetVaultPath)) {
-                    // Deduplicate redundant copies
-                    safeRemove(p);
-                    mergedCount++;
-                    console.log(`🧹 Deduplicated & Merged [${skillName}] from ${p}`);
+                    // Protect CORE_SKILLS in primary IDE from being removed (keep in Hot Base)
+                    const isCoreInPrimary = CORE_SKILLS.includes(skillName) && (p.toLowerCase().includes('.gemini') || p.toLowerCase().includes('.agents'));
+                    if (!isCoreInPrimary) {
+                        safeRemove(p);
+                        mergedCount++;
+                        console.log(`🧹 Deduplicated & Merged [${skillName}] from ${p}`);
+                    } else {
+                        console.log(`🛡️ Preserved Core Hot Skill [${skillName}] at Hot Base: ${p}`);
+                    }
                 }
             });
+        }
+    });
+
+    // Ensure CORE_SKILLS are always preserved in primary IDE hot base
+    const primaryHotDir = path.join(HOME_DIR, '.gemini', 'config', 'skills');
+    ensureDir(primaryHotDir);
+    CORE_SKILLS.forEach(coreItem => {
+        const vaultCorePath = path.join(ARCHIVE_DIR, coreItem);
+        const hotCorePath = path.join(primaryHotDir, coreItem);
+        if (fs.existsSync(vaultCorePath) && !fs.existsSync(hotCorePath)) {
+            safeCopy(vaultCorePath, hotCorePath);
+            console.log(`🛡️ Restored Core Hot Skill [${coreItem}] -> Hot Base (${primaryHotDir})`);
         }
     });
 
