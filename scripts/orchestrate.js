@@ -309,7 +309,7 @@ function runStatus(projectCwd = process.cwd()) {
 }
 
 // -------------------------------------------------------------------
-// Standard Actions: Init, Sync, Status, Cleanup, Eject
+// Standard Actions: Init, Sync, Status, Cleanup, Smart Multi-IDE Eject
 // -------------------------------------------------------------------
 function runInit() {
     console.log('🚀 Consolidating Local Private Skills into Unified Shared Vault (Pure Clean)...');
@@ -384,27 +384,40 @@ function runCleanup(projectCwd = process.cwd()) {
 }
 
 function runEject() {
-    console.log('🚪 Executing Offboarding (Eject) Strategy...');
-    console.log('📦 Restoring all archived private skills from Cold Vault back to Global Skill directories...');
+    console.log('门 Executing Smart Multi-IDE Offboarding (Eject) Strategy...');
+    console.log('📦 Auto-detecting installed IDEs & restoring archived skills to respective global folders...');
+
+    // Auto-detect which IDE folders exist on the user's OS
+    let activeIdePaths = AGENT_SKILL_PATHS.filter(p => {
+        const parentDir = path.dirname(p);
+        return fs.existsSync(parentDir);
+    });
+
+    if (activeIdePaths.length === 0) {
+        activeIdePaths.push(path.join(HOME_DIR, '.agents', 'skills'));
+    }
+
+    console.log(`🔍 Detected ${activeIdePaths.length} active IDE platforms on system:`);
+    activeIdePaths.forEach(p => console.log(`   ├── IDE Path: ${p}`));
 
     let totalRestored = 0;
     if (fs.existsSync(ARCHIVE_DIR)) {
         const archivedItems = fs.readdirSync(ARCHIVE_DIR);
-        // Default target path to restore back to
-        const primaryGlobalPath = AGENT_SKILL_PATHS[0] || path.join(HOME_DIR, '.agents', 'skills');
-        ensureDir(primaryGlobalPath);
 
-        archivedItems.forEach(item => {
-            const archiveItemPath = path.join(ARCHIVE_DIR, item);
-            const restoreTargetPath = path.join(primaryGlobalPath, item);
+        activeIdePaths.forEach(targetIdePath => {
+            ensureDir(targetIdePath);
+            archivedItems.forEach(item => {
+                const archiveItemPath = path.join(ARCHIVE_DIR, item);
+                const restoreTargetPath = path.join(targetIdePath, item);
 
-            if (fs.existsSync(archiveItemPath) && fs.statSync(archiveItemPath).isDirectory()) {
-                try {
-                    fs.cpSync(archiveItemPath, restoreTargetPath, { recursive: true });
-                    totalRestored++;
-                    console.log(`✅ Restored private skill [${item}] -> ${restoreTargetPath}`);
-                } catch (e) {}
-            }
+                if (fs.existsSync(archiveItemPath) && fs.statSync(archiveItemPath).isDirectory()) {
+                    try {
+                        fs.cpSync(archiveItemPath, restoreTargetPath, { recursive: true });
+                        totalRestored++;
+                        console.log(`✅ Restored private skill [${item}] -> ${restoreTargetPath}`);
+                    } catch (e) {}
+                }
+            });
         });
 
         // Safely remove Archive Vault
@@ -414,8 +427,8 @@ function runEject() {
         } catch (e) {}
     }
 
-    console.log(`\n🎉 Eject Complete! Successfully restored ${totalRestored} skills back to global directory.`);
-    console.log('System is now restored to standard default mode (0 data lost).');
+    console.log(`\n🎉 Smart Multi-IDE Eject Complete! Restored archived skills across ${activeIdePaths.length} active IDE directories.`);
+    console.log('All IDEs are now restored to standard default mode (0 data lost).');
 }
 
 // -------------------------------------------------------------------
@@ -445,7 +458,7 @@ switch (command) {
         break;
     default:
         console.log(`
-Skill Orchestrator Engine (v3.0) - Eject Offboarding Edition
+Skill Orchestrator Engine (v3.1) - Smart Multi-IDE Eject Edition
 
 Usage:
   node scripts/orchestrate.js init      - Consolidate local private skills into Unified Shared Vault
@@ -453,7 +466,7 @@ Usage:
   node scripts/orchestrate.js sync      - Auto-detect manual npx skills & migrate to vault
   node scripts/orchestrate.js status    - Display active vs archived skills token telemetry
   node scripts/orchestrate.js cleanup   - Clean up project-level skills
-  node scripts/orchestrate.js eject     - Restore all archived skills back to global folder & uninstall (0 data loss)
+  node scripts/orchestrate.js eject     - Auto-detect active IDEs & restore skills to respective global folders
         `);
         break;
 }
