@@ -56,7 +56,23 @@ npx skill-orchestrator eject   # or skill-orchestrator eject
 
 # 6. Targeted Single-IDE Skill Sync (Isolates specific IDE like gemini / claude / cursor)
 npx skill-orchestrator sync --ide=gemini   # or --ide=claude, --ide=cursor
+```### ⚙️ User-Customized Hot Base Whitelist (`~/.agents/hot_skills.json`)
+
+The orchestrator automatically manages a whitelist configuration at `~/.agents/hot_skills.json`. You can edit `core_hot_skills` at any time to preserve custom essential skills permanently in your primary IDE hot base:
+
+```json
+{
+  "version": "1.0.0",
+  "core_hot_skills": [
+    "z-coding-refactoring",
+    "agentic-workflow",
+    "find-skills",
+    "skill-orchestrator"
+  ]
+}
 ```
+
+---
 
 ### ⚡ Shortcuts, Slash Commands & Triggers
 

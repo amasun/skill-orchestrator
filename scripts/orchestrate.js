@@ -21,7 +21,46 @@ const KNOWN_AGENT_SKILL_PATHS = [
     path.join(HOME_DIR, '.codeium', 'skills')
 ];
 
-const CORE_SKILLS = ['z-coding-refactoring', 'agentic-workflow', 'skill-orchestrator', 'find-skills'];
+const HOT_SKILLS_CONFIG_FILE = path.join(HOME_DIR, '.agents', 'hot_skills.json');
+
+// Load or initialize user's Hot Base Skills configuration (hot_skills.json)
+function loadHotSkillsConfig() {
+    const configDir = path.dirname(HOT_SKILLS_CONFIG_FILE);
+    ensureDir(configDir);
+
+    const defaultConfig = {
+        version: "1.0.0",
+        description: "User Custom Hot Base Skills Configuration. Skills listed in 'core_hot_skills' will NEVER be moved to Cold Vault.",
+        core_hot_skills: [
+            "z-coding-refactoring",
+            "agentic-workflow",
+            "find-skills",
+            "skill-orchestrator"
+        ],
+        custom_protected_paths: []
+    };
+
+    if (!fs.existsSync(HOT_SKILLS_CONFIG_FILE)) {
+        try {
+            fs.writeFileSync(HOT_SKILLS_CONFIG_FILE, JSON.stringify(defaultConfig, null, 2), 'utf8');
+            console.log(`📝 Initialized User Hot Base Config: ${HOT_SKILLS_CONFIG_FILE}`);
+        } catch (e) {}
+        return defaultConfig.core_hot_skills;
+    }
+
+    try {
+        const raw = fs.readFileSync(HOT_SKILLS_CONFIG_FILE, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.core_hot_skills)) {
+            return parsed.core_hot_skills;
+        }
+    } catch (e) {}
+
+    return defaultConfig.core_hot_skills;
+}
+
+// Dynamically resolved Core Hot Skills whitelist from hot_skills.json
+const CORE_SKILLS = loadHotSkillsConfig();
 
 // -------------------------------------------------------------------
 // Dynamic IDE Discovery & Vault Registry Engine

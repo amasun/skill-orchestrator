@@ -58,6 +58,24 @@ npx skill-orchestrator eject   # 或 skill-orchestrator eject
 npx skill-orchestrator sync --ide=gemini   # 或 --ide=claude, --ide=cursor
 ```
 
+### ⚙️ 用户自定义热底座配置 (`~/.agents/hot_skills.json`)
+
+系统会在 `~/.agents/hot_skills.json` 自动生成热底座白名单配置文件。你可以随时在此文件中填入任何你认为必须常驻在热底座里的技能名称，系统在执行 `sync` / `merge` / `init` 时 **100% 保证它们绝对不会被意外移入冷库**：
+
+```json
+{
+  "version": "1.0.0",
+  "core_hot_skills": [
+    "z-coding-refactoring",
+    "agentic-workflow",
+    "find-skills",
+    "skill-orchestrator"
+  ]
+}
+```
+
+---
+
 ### 斜杠指令与自然语言触发 (Triggers & Shortcuts)
 
 在 AI 对话框中，无需输入命令行，直接使用**斜杠指令**或**自然语言**即可自动触发后台操作：
