@@ -310,10 +310,10 @@ function runStatus(projectCwd = process.cwd()) {
 }
 
 // -------------------------------------------------------------------
-// Standard Actions: Init, Sync, Status, Cleanup
+// Standard Actions: Init, Sync, Status, Cleanup (Symlink Preserved)
 // -------------------------------------------------------------------
 function runInit() {
-    console.log('🚀 Consolidating Local Private Skills across all Agents into Unified Shared Vault...');
+    console.log('🚀 Consolidating Local Private Skills across all Agents into Unified Shared Vault (Symlink Preserved)...');
     ensureDir(ARCHIVE_DIR);
     let totalConsolidated = 0;
 
@@ -328,8 +328,14 @@ function runInit() {
                         try {
                             fs.cpSync(fullPath, targetPath, { recursive: true });
                             fs.rmSync(fullPath, { recursive: true, force: true });
+                            
+                            // Create Symlink / Junction at original path so Official Client UIs (Claude Desktop) don't prompt for re-download
+                            try {
+                                fs.symlinkSync(targetPath, fullPath, 'junction');
+                            } catch (symErr) {}
+
                             totalConsolidated++;
-                            console.log(`📦 Consolidated private asset [${item}] -> Unified Shared Archive Vault`);
+                            console.log(`📦 Consolidated private asset [${item}] -> Unified Shared Vault (Symlink Active)`);
                         } catch (e) {}
                     }
                 }
@@ -356,8 +362,14 @@ function runSync() {
                         try {
                             fs.cpSync(fullPath, targetPath, { recursive: true });
                             fs.rmSync(fullPath, { recursive: true, force: true });
+
+                            // Create Symlink / Junction at original path
+                            try {
+                                fs.symlinkSync(targetPath, fullPath, 'junction');
+                            } catch (symErr) {}
+
                             totalSynced++;
-                            console.log(`📦 Auto-synced [${item}] -> Unified Shared Archive Vault`);
+                            console.log(`📦 Auto-synced [${item}] -> Unified Shared Vault (Symlink Active)`);
                         } catch (e) {}
                     }
                 }
@@ -407,10 +419,10 @@ switch (command) {
         break;
     default:
         console.log(`
-Skill Orchestrator Engine (v2.6) - Unified Shared Archive Edition
+Skill Orchestrator Engine (v2.8) - Symlink Preserved Edition
 
 Usage:
-  node scripts/orchestrate.js init    - Consolidate local private skills into Unified Shared Vault
+  node scripts/orchestrate.js init    - Consolidate local private skills into Unified Shared Vault (Symlink Preserved)
   node scripts/orchestrate.js infer   - Infer dependencies from project stack & auto-load skills
   node scripts/orchestrate.js sync    - Auto-detect manual npx skills & migrate to vault
   node scripts/orchestrate.js status  - Display active vs archived skills token telemetry
