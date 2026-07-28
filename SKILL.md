@@ -13,14 +13,18 @@ AI Agent execution rules for dynamic skill orchestration and zero-base-token opt
 
 ## Command Mapping
 
-| Trigger / User Intent | Execution Command |
+| Trigger / Natural Language Intent | Execution Command |
 | :--- | :--- |
-| `/status`, `$status`, `status`, "Check Token/Skill Status" | `node scripts/orchestrate.js status` |
-| `/init`, `$init`, `init`, "Initialize Skill Vault" | `node scripts/orchestrate.js init` |
-| `/infer`, `$infer`, `infer`, "Auto Match Skills/Infer Dependencies" | `node scripts/orchestrate.js infer` |
-| `/sync`, `$sync`, `sync`, "Sync New Skills/Organize Cold Archive" | `node scripts/orchestrate.js sync` |
-| `/cleanup`, `$cleanup`, `cleanup`, "Clean Up Project Skills" | `node scripts/orchestrate.js cleanup` |
-| `/eject`, `$eject`, `eject`, `uninstall`, "Restore Skills & Uninstall" | `node scripts/orchestrate.js eject` |
+| `/status`, `$status`, "Check Token/Skill Status", "技能诊断" | `npx skill-orchestrator status` |
+| `/init`, `$init`, "Initialize Skill Vault", "初始化技能库" | `npx skill-orchestrator init` |
+| `/infer`, `$infer`, "Auto Match Skills/Infer Dependencies", "自动匹配技能" | `npx skill-orchestrator infer` |
+| `/sync`, `$sync`, "Sync New Skills/Organize Cold Archive", "同步所有技能" | `npx skill-orchestrator sync` |
+| **"只同步/归档 Gemini/Antigravity 的技能"** | `npx skill-orchestrator sync --ide=gemini` |
+| **"把 Claude 的技能移入冷库"** | `npx skill-orchestrator sync --ide=claude` |
+| **"只整理 Cursor 的技能"** | `npx skill-orchestrator sync --ide=cursor` |
+| **"只归档 Trae 的技能"** | `npx skill-orchestrator sync --ide=trae` |
+| `/cleanup`, `$cleanup`, "Clean Up Project Skills", "清理项目技能" | `npx skill-orchestrator cleanup` |
+| `/eject`, `$eject`, "Restore Skills & Uninstall", "退出并恢复" | `npx skill-orchestrator eject` |
 
 ## Resolution Priority
 
@@ -69,8 +73,8 @@ Prompt Cache Anchor          : Injected (4x Speedup)
 
 ## Lifecycle Rules
 
-1. **`init`**: Run `node scripts/orchestrate.js init` to move non-core global skills into unified shared archive vault (`~/.agents/skills_archive/`).
-2. **`infer`**: Run `node scripts/orchestrate.js infer` when project scope locks or dependencies change. Print Telemetry Report.
-3. **`sync`**: Run `node scripts/orchestrate.js sync` to capture manual `npx` skills into unified shared archive vault.
-4. **`cleanup`**: Run `node scripts/orchestrate.js cleanup` upon project completion.
-5. **`eject`**: Run `node scripts/orchestrate.js eject` to restore all archived skills back to global directory and uninstall cleanly (0 data loss).
+1. **`init`**: Run `npx skill-orchestrator init` to move non-core global skills into unified shared archive vault (`~/.agents/skills_archive/`).
+2. **`infer`**: Run `npx skill-orchestrator infer` when project scope locks or dependencies change. Print Telemetry Report.
+3. **`sync`**: Run `npx skill-orchestrator sync` (or `npx skill-orchestrator sync --ide=<target>`) to capture manual `npx` skills into unified shared archive vault.
+4. **`cleanup`**: Run `npx skill-orchestrator cleanup` upon project completion.
+5. **`eject`**: Run `npx skill-orchestrator eject` to restore all archived skills back to global directory and uninstall cleanly (0 data loss).

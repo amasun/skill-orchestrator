@@ -25,8 +25,17 @@ const CORE_SKILLS = ['z-coding-refactoring', 'agentic-workflow', 'skill-orchestr
 // Dynamic IDE Discovery & Vault Registry Engine
 // -------------------------------------------------------------------
 
+// Helper to get --ide=<target> filter from CLI flags
+function getIdeFilter() {
+    const arg = process.argv.find(a => a.startsWith('--ide='));
+    if (arg) return arg.split('=')[1].trim().toLowerCase();
+    const idx = process.argv.indexOf('--ide');
+    if (idx !== -1 && process.argv[idx + 1]) return process.argv[idx + 1].trim().toLowerCase();
+    return null;
+}
+
 // Dynamically scan user's HOME_DIR to discover unknown / custom IDE skill directories
-function discoverAllSkillPaths() {
+function discoverAllSkillPaths(ideFilter = getIdeFilter()) {
     const discoveredPaths = new Set(KNOWN_AGENT_SKILL_PATHS);
 
     try {
@@ -62,7 +71,18 @@ function discoverAllSkillPaths() {
         }
     } catch (e) {}
 
-    return Array.from(discoveredPaths);
+    const allPaths = Array.from(discoveredPaths);
+
+    if (ideFilter) {
+        const filtered = allPaths.filter(p => {
+            const lowerP = p.toLowerCase();
+            return lowerP.includes('.' + ideFilter) || lowerP.includes(ideFilter);
+        });
+        if (filtered.length > 0) return filtered;
+        console.log(`⚠️ Specified --ide=${ideFilter} filter matched no paths directly, falling back to full paths list.`);
+    }
+
+    return allPaths;
 }
 
 // Read vault_registry.json
@@ -563,7 +583,9 @@ function runInit() {
 }
 
 function runSync() {
-    console.log('🔄 Dynamically checking for newly added or updated skills across all discovered IDE directories...');
+    const ideFilter = getIdeFilter();
+    const filterMsg = ideFilter ? ` [Target IDE Filter: ${ideFilter}]` : '';
+    console.log(`🔄 Dynamically checking for newly added or updated skills${filterMsg}...`);
     ensureDir(ARCHIVE_DIR);
     let totalSynced = 0;
 
