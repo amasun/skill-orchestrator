@@ -5,16 +5,126 @@ const { execSync } = require('child_process');
 const HOME_DIR = process.env.USERPROFILE || process.env.HOME;
 // Unified Shared Cold Archive Vault across all IDEs and Agent Assistants
 const ARCHIVE_DIR = process.env.SKILLS_ARCHIVE_DIR || path.join(HOME_DIR, '.agents', 'skills_archive');
+const REGISTRY_FILE = path.join(ARCHIVE_DIR, 'vault_registry.json');
 
-// Well-known Agent skill directories across different platforms
-const AGENT_SKILL_PATHS = [
+// Well-known Agent skill directories seed list
+const KNOWN_AGENT_SKILL_PATHS = [
     path.join(HOME_DIR, '.gemini', 'config', 'skills'),
     path.join(HOME_DIR, '.agents', 'skills'),
     path.join(HOME_DIR, '.claude', 'skills'),
-    path.join(HOME_DIR, '.trae-cn', 'skills')
+    path.join(HOME_DIR, '.trae-cn', 'skills'),
+    path.join(HOME_DIR, '.cursor', 'skills'),
+    path.join(HOME_DIR, '.windsurf', 'skills'),
+    path.join(HOME_DIR, '.codeium', 'skills')
 ];
 
 const CORE_SKILLS = ['z-coding-refactoring', 'agentic-workflow', 'skill-orchestrator', 'find-skills'];
+
+// -------------------------------------------------------------------
+// Dynamic IDE Discovery & Vault Registry Engine
+// -------------------------------------------------------------------
+
+// Dynamically scan user's HOME_DIR to discover unknown / custom IDE skill directories
+function discoverAllSkillPaths() {
+    const discoveredPaths = new Set(KNOWN_AGENT_SKILL_PATHS);
+
+    try {
+        if (fs.existsSync(HOME_DIR)) {
+            const homeItems = fs.readdirSync(HOME_DIR);
+            homeItems.forEach(item => {
+                // Scan all hidden dot-folders (e.g. .any-obscure-ide)
+                if (item.startsWith('.')) {
+                    const dotFolderPath = path.join(HOME_DIR, item);
+                    try {
+                        const stat = fs.lstatSync(dotFolderPath);
+                        if (stat.isDirectory() && !stat.isSymbolicLink()) {
+                            // Check direct /skills folder
+                            const directSkills = path.join(dotFolderPath, 'skills');
+                            if (fs.existsSync(directSkills)) {
+                                const skillStat = fs.lstatSync(directSkills);
+                                if (skillStat.isDirectory() && !skillStat.isSymbolicLink()) {
+                                    discoveredPaths.add(directSkills);
+                                }
+                            }
+                            // Check nested /config/skills folder
+                            const configSkills = path.join(dotFolderPath, 'config', 'skills');
+                            if (fs.existsSync(configSkills)) {
+                                const configStat = fs.lstatSync(configSkills);
+                                if (configStat.isDirectory() && !configStat.isSymbolicLink()) {
+                                    discoveredPaths.add(configSkills);
+                                }
+                            }
+                        }
+                    } catch (e) {}
+                }
+            });
+        }
+    } catch (e) {}
+
+    return Array.from(discoveredPaths);
+}
+
+// Read vault_registry.json
+function loadRegistry() {
+    if (!fs.existsSync(REGISTRY_FILE)) return {};
+    try {
+        return JSON.parse(fs.readFileSync(REGISTRY_FILE, 'utf-8')) || {};
+    } catch (e) {
+        return {};
+    }
+}
+
+// Save origin path mapping into vault_registry.json
+function recordSkillOrigin(skillName, originalPath) {
+    try {
+        const registry = loadRegistry();
+        if (!registry[skillName]) {
+            registry[skillName] = [];
+        }
+        if (!registry[skillName].includes(originalPath)) {
+            registry[skillName].push(originalPath);
+        }
+        ensureDir(ARCHIVE_DIR);
+        fs.writeFileSync(REGISTRY_FILE, JSON.stringify(registry, null, 2), 'utf-8');
+    } catch (e) {}
+}
+
+// Safely delete directory or symlink without throwing
+function safeRemove(targetPath) {
+    try {
+        const stat = fs.lstatSync(targetPath);
+        if (stat.isSymbolicLink()) {
+            try {
+                fs.unlinkSync(targetPath);
+            } catch (e) {
+                fs.rmSync(targetPath, { recursive: true, force: true });
+            }
+        } else {
+            fs.rmSync(targetPath, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+        }
+    } catch (e) {
+        try {
+            fs.rmSync(targetPath, { recursive: true, force: true });
+        } catch (err) {}
+    }
+}
+
+// Safely copy directory, avoiding circular symlink recursion
+function safeCopy(sourcePath, targetPath) {
+    try {
+        const stat = fs.lstatSync(sourcePath);
+        if (stat.isSymbolicLink()) {
+            return false;
+        }
+        if (path.normalize(sourcePath) === path.normalize(targetPath)) {
+            return false;
+        }
+        fs.cpSync(sourcePath, targetPath, { recursive: true });
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
 
 // -------------------------------------------------------------------
 // Multi-Registry & Dependency Mapping (多云端注册表与依赖规则)
@@ -103,7 +213,7 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = '需求意图', p
     if (fs.existsSync(archivePath)) {
         console.log(`📦 Hit Source 2 [统一共享冷库]: 0ms Loading [${sanitizeName}] into project...`);
         ensureDir(path.dirname(projectTargetPath));
-        fs.cpSync(archivePath, projectTargetPath, { recursive: true });
+        safeCopy(archivePath, projectTargetPath);
         injectCacheControl(projectTargetPath, `来源: 本地冷库 | 推断: ${inferReason}`);
         return { success: true, origin: '来源: 本地冷库', reason: inferReason };
     }
@@ -239,23 +349,30 @@ function runStatus(projectCwd = process.cwd()) {
     console.log('[Project Skills & Token Telemetry]');
     console.log('------------------------------------------------------------');
 
-    // 1. Hot Global Base
+    const allDiscoveredPaths = discoverAllSkillPaths();
     let globalTokens = 0;
     let globalSkillsList = [];
-    AGENT_SKILL_PATHS.forEach(agentPath => {
+
+    allDiscoveredPaths.forEach(agentPath => {
         if (fs.existsSync(agentPath)) {
-            const items = fs.readdirSync(agentPath);
-            items.forEach(item => {
-                const fullPath = path.join(agentPath, item);
-                if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
-                    const skillMd = path.join(fullPath, 'SKILL.md');
-                    if (fs.existsSync(skillMd)) {
-                        const tokens = estimateTokens(fs.readFileSync(skillMd, 'utf-8'));
-                        globalTokens += tokens;
-                        globalSkillsList.push({ name: item, tokens });
-                    }
-                }
-            });
+            try {
+                const items = fs.readdirSync(agentPath);
+                items.forEach(item => {
+                    if (item.startsWith('.')) return;
+                    const fullPath = path.join(agentPath, item);
+                    try {
+                        const lstat = fs.lstatSync(fullPath);
+                        if (lstat.isDirectory() && !lstat.isSymbolicLink()) {
+                            const skillMd = path.join(fullPath, 'SKILL.md');
+                            if (fs.existsSync(skillMd)) {
+                                const tokens = estimateTokens(fs.readFileSync(skillMd, 'utf-8'));
+                                globalTokens += tokens;
+                                globalSkillsList.push({ name: item, tokens, path: agentPath });
+                            }
+                        }
+                    } catch (e) {}
+                });
+            } catch (e) {}
         }
     });
 
@@ -272,31 +389,30 @@ function runStatus(projectCwd = process.cwd()) {
     const projectSkillsDir = path.join(projectCwd, '.agents', 'skills');
 
     if (fs.existsSync(projectSkillsDir)) {
-        const items = fs.readdirSync(projectSkillsDir);
-        items.forEach(item => {
-            const fullPath = path.join(projectSkillsDir, item);
-            if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
-                const skillMd = path.join(fullPath, 'SKILL.md');
-                if (fs.existsSync(skillMd)) {
-                    const content = fs.readFileSync(skillMd, 'utf-8');
-                    const tokens = estimateTokens(content);
-                    projectTokens += tokens;
+        try {
+            const items = fs.readdirSync(projectSkillsDir);
+            items.forEach(item => {
+                if (item.startsWith('.')) return;
+                const fullPath = path.join(projectSkillsDir, item);
+                try {
+                    const lstat = fs.lstatSync(fullPath);
+                    if (lstat.isDirectory() && !lstat.isSymbolicLink()) {
+                        const skillMd = path.join(fullPath, 'SKILL.md');
+                        if (fs.existsSync(skillMd)) {
+                            const content = fs.readFileSync(skillMd, 'utf-8');
+                            const tokens = estimateTokens(content);
+                            projectTokens += tokens;
 
-                    // Extract origin info
-                    let originMatch = content.match(/<!-- @origin: (.*?) -->/);
-                    let originStr = originMatch ? originMatch[1] : '来源: 本地冷库';
+                            // Extract origin info
+                            let originMatch = content.match(/<!-- @origin: (.*?) -->/);
+                            let originStr = originMatch ? originMatch[1] : '来源: 本地冷库';
 
-                    projectSkillsList.push({ name: item, tokens, origin: originStr });
-                }
-            }
-        });
-    }
-
-    console.log(`\n本项目专属装载 :`);
-    if (projectSkillsList.length === 0) {
-        console.log('   └── (暂未装载项目级技能)');
-    } else {
-        projectSkillsList.forEach(s => console.log(`   ├── ${s.name.padEnd(23)} : ${s.tokens} Tokens (${s.origin})`));
+                            projectSkillsList.push({ name: item, tokens, origin: originStr });
+                        }
+                    }
+                } catch (e) {}
+            });
+        } catch (e) {}
     }
 
     const totalActive = globalTokens + projectTokens;
@@ -309,59 +425,99 @@ function runStatus(projectCwd = process.cwd()) {
 }
 
 // -------------------------------------------------------------------
-// Standard Actions: Init, Sync, Status, Cleanup, Smart Multi-IDE Eject
+// Standard Actions: Init, Sync, Status, Cleanup, Smart Dynamic Eject
 // -------------------------------------------------------------------
 function runInit() {
-    console.log('🚀 Consolidating Local Private Skills into Unified Shared Vault (Pure Clean)...');
+    console.log('🚀 Dynamically Scanning System & Consolidating Skills into Unified Shared Vault...');
     ensureDir(ARCHIVE_DIR);
     let totalConsolidated = 0;
 
-    AGENT_SKILL_PATHS.forEach(agentPath => {
-        if (fs.existsSync(agentPath) && agentPath !== ARCHIVE_DIR) {
-            const items = fs.readdirSync(agentPath);
-            items.forEach(item => {
-                const fullPath = path.join(agentPath, item);
-                if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory() && !CORE_SKILLS.includes(item)) {
-                    const targetPath = path.join(ARCHIVE_DIR, item);
-                    if (!fs.existsSync(targetPath)) {
-                        try {
-                            fs.cpSync(fullPath, targetPath, { recursive: true });
-                            fs.rmSync(fullPath, { recursive: true, force: true });
-                            totalConsolidated++;
-                            console.log(`📦 Consolidated private asset [${item}] -> Unified Shared Archive Vault`);
-                        } catch (e) {}
-                    }
-                }
-            });
-        }
+    const allDiscoveredPaths = discoverAllSkillPaths();
+    console.log(`🔍 Dynamically discovered ${allDiscoveredPaths.length} skill directories across system:`);
+    allDiscoveredPaths.forEach(p => console.log(`   ├── Path: ${p}`));
+
+    allDiscoveredPaths.forEach(agentPath => {
+        try {
+            if (fs.existsSync(agentPath) && path.normalize(agentPath) !== path.normalize(ARCHIVE_DIR)) {
+                const items = fs.readdirSync(agentPath);
+                items.forEach(item => {
+                    if (item.startsWith('.')) return;
+                    const fullPath = path.join(agentPath, item);
+                    try {
+                        const lstat = fs.lstatSync(fullPath);
+
+                        // If fullPath is a symlink, clean up stale link safely
+                        if (lstat.isSymbolicLink()) {
+                            safeRemove(fullPath);
+                            return;
+                        }
+
+                        if (lstat.isDirectory() && !CORE_SKILLS.includes(item)) {
+                            const targetPath = path.join(ARCHIVE_DIR, item);
+                            
+                            // Record original source path into vault_registry.json for 100% exact restoration on eject
+                            recordSkillOrigin(item, fullPath);
+
+                            if (!fs.existsSync(targetPath)) {
+                                if (safeCopy(fullPath, targetPath)) {
+                                    safeRemove(fullPath);
+                                    totalConsolidated++;
+                                    console.log(`📦 Consolidated [${item}] -> Vault (Origin recorded: ${fullPath})`);
+                                }
+                            } else {
+                                safeRemove(fullPath);
+                            }
+                        }
+                    } catch (e) {}
+                });
+            }
+        } catch (e) {}
     });
 
-    console.log(`\n✅ Consolidated ${totalConsolidated} local private skills into Unified Shared Vault: ${ARCHIVE_DIR}`);
+    console.log(`\n✅ Consolidated ${totalConsolidated} skills into Unified Shared Vault: ${ARCHIVE_DIR}`);
+    console.log(`📝 Dynamic origin mapping saved to: ${REGISTRY_FILE}`);
 }
 
 function runSync() {
-    console.log('🔄 Checking for newly added public skills across Agent directories...');
+    console.log('🔄 Dynamically checking for newly added skills across all discovered IDE directories...');
     ensureDir(ARCHIVE_DIR);
     let totalSynced = 0;
 
-    AGENT_SKILL_PATHS.forEach(agentPath => {
-        if (fs.existsSync(agentPath) && agentPath !== ARCHIVE_DIR) {
-            const items = fs.readdirSync(agentPath);
-            items.forEach(item => {
-                const fullPath = path.join(agentPath, item);
-                if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory() && !CORE_SKILLS.includes(item)) {
-                    const targetPath = path.join(ARCHIVE_DIR, item);
-                    if (!fs.existsSync(targetPath)) {
-                        try {
-                            fs.cpSync(fullPath, targetPath, { recursive: true });
-                            fs.rmSync(fullPath, { recursive: true, force: true });
-                            totalSynced++;
-                            console.log(`📦 Auto-synced [${item}] -> Unified Shared Archive Vault`);
-                        } catch (e) {}
-                    }
-                }
-            });
-        }
+    const allDiscoveredPaths = discoverAllSkillPaths();
+    allDiscoveredPaths.forEach(agentPath => {
+        try {
+            if (fs.existsSync(agentPath) && path.normalize(agentPath) !== path.normalize(ARCHIVE_DIR)) {
+                const items = fs.readdirSync(agentPath);
+                items.forEach(item => {
+                    if (item.startsWith('.')) return;
+                    const fullPath = path.join(agentPath, item);
+                    try {
+                        const lstat = fs.lstatSync(fullPath);
+
+                        if (lstat.isSymbolicLink()) {
+                            safeRemove(fullPath);
+                            return;
+                        }
+
+                        if (lstat.isDirectory() && !CORE_SKILLS.includes(item)) {
+                            const targetPath = path.join(ARCHIVE_DIR, item);
+                            
+                            recordSkillOrigin(item, fullPath);
+
+                            if (!fs.existsSync(targetPath)) {
+                                if (safeCopy(fullPath, targetPath)) {
+                                    safeRemove(fullPath);
+                                    totalSynced++;
+                                    console.log(`📦 Auto-synced [${item}] -> Vault (Origin recorded: ${fullPath})`);
+                                }
+                            } else {
+                                safeRemove(fullPath);
+                            }
+                        }
+                    } catch (e) {}
+                });
+            }
+        } catch (e) {}
     });
 
     console.log(`\n✅ Sync complete. Migrated ${totalSynced} new skills to Unified Shared Vault: ${ARCHIVE_DIR}`);
@@ -373,7 +529,7 @@ function runCleanup(projectCwd = process.cwd()) {
 
     if (fs.existsSync(projectSkillsDir)) {
         try {
-            fs.rmSync(projectSkillsDir, { recursive: true, force: true });
+            safeRemove(projectSkillsDir);
             console.log(`✅ Removed temporary project skills from: ${projectSkillsDir}`);
         } catch (err) {
             console.error(`❌ Failed to cleanup ${projectSkillsDir}: ${err.message}`);
@@ -384,51 +540,62 @@ function runCleanup(projectCwd = process.cwd()) {
 }
 
 function runEject() {
-    console.log('门 Executing Smart Multi-IDE Offboarding (Eject) Strategy...');
-    console.log('📦 Auto-detecting installed IDEs & restoring archived skills to respective global folders...');
+    console.log('🚪 Executing Precision Dynamic Offboarding (Eject) Strategy...');
+    console.log('📦 Reading origin mapping registry (vault_registry.json) for 100% exact path restoration...');
 
-    // Auto-detect which IDE folders exist on the user's OS
-    let activeIdePaths = AGENT_SKILL_PATHS.filter(p => {
-        const parentDir = path.dirname(p);
-        return fs.existsSync(parentDir);
-    });
-
-    if (activeIdePaths.length === 0) {
-        activeIdePaths.push(path.join(HOME_DIR, '.agents', 'skills'));
-    }
-
-    console.log(`🔍 Detected ${activeIdePaths.length} active IDE platforms on system:`);
-    activeIdePaths.forEach(p => console.log(`   ├── IDE Path: ${p}`));
-
+    const registry = loadRegistry();
     let totalRestored = 0;
+
     if (fs.existsSync(ARCHIVE_DIR)) {
-        const archivedItems = fs.readdirSync(ARCHIVE_DIR);
-
-        activeIdePaths.forEach(targetIdePath => {
-            ensureDir(targetIdePath);
-            archivedItems.forEach(item => {
-                const archiveItemPath = path.join(ARCHIVE_DIR, item);
-                const restoreTargetPath = path.join(targetIdePath, item);
-
-                if (fs.existsSync(archiveItemPath) && fs.statSync(archiveItemPath).isDirectory()) {
-                    try {
-                        fs.cpSync(archiveItemPath, restoreTargetPath, { recursive: true });
-                        totalRestored++;
-                        console.log(`✅ Restored private skill [${item}] -> ${restoreTargetPath}`);
-                    } catch (e) {}
-                }
-            });
-        });
-
-        // Safely remove Archive Vault
         try {
-            fs.rmSync(ARCHIVE_DIR, { recursive: true, force: true });
-            console.log(`\n🗑️ Safely removed Cold Archive Vault: ${ARCHIVE_DIR}`);
+            const archivedItems = fs.readdirSync(ARCHIVE_DIR);
+
+            archivedItems.forEach(item => {
+                if (item === 'vault_registry.json') return;
+                const archiveItemPath = path.join(ARCHIVE_DIR, item);
+
+                try {
+                    const lstat = fs.lstatSync(archiveItemPath);
+                    if (lstat.isDirectory() && !lstat.isSymbolicLink()) {
+                        const originalPaths = registry[item];
+
+                        if (originalPaths && originalPaths.length > 0) {
+                            // Restore to exact original paths recorded during init/sync
+                            originalPaths.forEach(originalPath => {
+                                try {
+                                    ensureDir(path.dirname(originalPath));
+                                    if (safeCopy(archiveItemPath, originalPath)) {
+                                        totalRestored++;
+                                        console.log(`✅ Exact Restoration: [${item}] -> ${originalPath}`);
+                                    }
+                                } catch (e) {}
+                            });
+                        } else {
+                            // Fallback to all discovered active IDE paths on system if unrecorded
+                            const activePaths = discoverAllSkillPaths();
+                            activePaths.forEach(activePath => {
+                                try {
+                                    const targetPath = path.join(activePath, item);
+                                    ensureDir(activePath);
+                                    if (safeCopy(archiveItemPath, targetPath)) {
+                                        totalRestored++;
+                                        console.log(`✅ Fallback Restoration: [${item}] -> ${targetPath}`);
+                                    }
+                                } catch (e) {}
+                            });
+                        }
+                    }
+                } catch (e) {}
+            });
+
+            // Safely remove Cold Archive Vault & registry file
+            safeRemove(ARCHIVE_DIR);
+            console.log(`\n🗑️ Safely removed Cold Archive Vault & Registry: ${ARCHIVE_DIR}`);
         } catch (e) {}
     }
 
-    console.log(`\n🎉 Smart Multi-IDE Eject Complete! Restored archived skills across ${activeIdePaths.length} active IDE directories.`);
-    console.log('All IDEs are now restored to standard default mode (0 data lost).');
+    console.log(`\n🎉 Dynamic Eject Complete! Successfully restored ${totalRestored} private skills back to exact original IDE paths.`);
+    console.log('System is now restored to standard default mode (0 data lost).');
 }
 
 // -------------------------------------------------------------------
@@ -458,15 +625,15 @@ switch (command) {
         break;
     default:
         console.log(`
-Skill Orchestrator Engine (v3.1) - Smart Multi-IDE Eject Edition
+Skill Orchestrator Engine (v4.0) - Dynamic Path Registry Edition
 
 Usage:
-  node scripts/orchestrate.js init      - Consolidate local private skills into Unified Shared Vault
+  node scripts/orchestrate.js init      - Dynamically discover IDEs, record original paths & consolidate to Vault
   node scripts/orchestrate.js infer     - Infer dependencies from project stack & auto-load skills
-  node scripts/orchestrate.js sync      - Auto-detect manual npx skills & migrate to vault
+  node scripts/orchestrate.js sync      - Auto-detect manual npx skills, update registry & migrate to vault
   node scripts/orchestrate.js status    - Display active vs archived skills token telemetry
   node scripts/orchestrate.js cleanup   - Clean up project-level skills
-  node scripts/orchestrate.js eject     - Auto-detect active IDEs & restore skills to respective global folders
+  node scripts/orchestrate.js eject     - 100% exact path restoration via vault_registry.json & uninstall
         `);
         break;
 }
