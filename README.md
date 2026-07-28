@@ -50,6 +50,9 @@ npx skill-orchestrator cleanup # or skill-orchestrator cleanup
 
 # 5. Smart Offboarding Eject (Restores skills to original IDE paths & uninstalls safely)
 npx skill-orchestrator eject   # or skill-orchestrator eject
+
+# 6. Targeted Single-IDE Skill Sync (Isolates specific IDE like gemini / claude / cursor)
+npx skill-orchestrator sync --ide=gemini   # or --ide=claude, --ide=cursor
 ```
 
 ### ⚡ Shortcuts, Slash Commands & Triggers

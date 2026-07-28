@@ -50,6 +50,9 @@ npx skill-orchestrator cleanup # 或 skill-orchestrator cleanup
 
 # 5. 退出机制 (还原所有归档技能至全局目录并彻底卸载，0 数据丢失)
 npx skill-orchestrator eject   # 或 skill-orchestrator eject
+
+# 6. 定向针对单一 IDE 归档技能 (不影响其他 IDE，如仅针对 gemini / claude / cursor)
+npx skill-orchestrator sync --ide=gemini   # 或 --ide=claude, --ide=cursor
 ```
 
 ### 斜杠指令与自然语言触发 (Triggers & Shortcuts)
