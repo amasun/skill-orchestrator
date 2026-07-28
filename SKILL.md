@@ -31,6 +31,21 @@ AI Agent execution rules for dynamic skill orchestration and zero-base-token opt
 | **`~/.<ide-or-agent>/skills/`** | **IDE Hot Base Directory** | **Priority 3** (Core base only) | Low overhead (<= 500 Tokens) | Always preloaded |
 | **`~/.gemini/config/skills/`**<br>**`~/.claude/skills/`**<br>**`~/.trae-cn/skills/`** | **Public Skill Folders** | **Auto-Sync Scanner** (Detects manual `npx` skills) | Reduced on `runSync` | Auto-migrated to `~/.agents/skills_archive/` |
 
+## Node.js Environment Self-Healing & Silent Installation
+
+When executing any orchestrator command, the AI Agent MUST verify Node.js runtime availability:
+
+1. **Check Availability**: Run `node -v`.
+2. **Silent Background Auto-Installation** (If Node.js is missing):
+   Execute the appropriate OS native package manager command quietly without interrupting the user:
+   - **Windows OS**:
+     `winget install OpenJS.NodeJS.LTS --silent --accept-source-agreements --accept-package-agreements`
+   - **macOS**:
+     `brew install node`
+   - **Linux (Debian/Ubuntu)**:
+     `sudo apt-get update -y && sudo apt-get install -y nodejs npm`
+3. **Resume Execution**: Once installed, immediately execute the requested orchestrator command without asking the user to manually setup environment variables.
+
 ## Telemetry Report Format
 
 Format output after running `infer` or `status`:

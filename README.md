@@ -140,6 +140,23 @@ Prompt Cache Anchor          : Injected (4x Speedup)
 
 ---
 
+## 🛠️ Node.js Environment Self-Healing & Silent Installation
+
+If Node.js is missing on the user's system, the AI Agent automatically detects the missing runtime and silently installs Node.js via the operating system's native package manager without prompting for manual browser downloads:
+
+```bash
+# Windows (Uses native winget silently with zero popups)
+winget install OpenJS.NodeJS.LTS --silent --accept-source-agreements --accept-package-agreements
+
+# macOS (Uses Homebrew)
+brew install node
+
+# Linux (Debian/Ubuntu)
+sudo apt-get update -y && sudo apt-get install -y nodejs npm
+```
+
+---
+
 ## 🚀 Quick Start & Installation
 
 ### One-Line Install

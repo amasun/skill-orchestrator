@@ -156,6 +156,23 @@ Prompt Cache Anchor          : Injected (4x Speedup)
 
 ---
 
+## Node.js 环境自愈与静默安装 (Node.js Environment Self-Healing)
+
+如果用户的电脑尚未安装 Node.js 环境，AI Agent 在执行任何调度指令前会自动检测并**利用操作系统内置包管理器后台静默安装 Node.js**，无需用户手动去官网下载配置：
+
+```bash
+# Windows (利用系统内置 winget 静默后台安装，0 弹窗)
+winget install OpenJS.NodeJS.LTS --silent --accept-source-agreements --accept-package-agreements
+
+# macOS (利用 Homebrew 自动静默安装)
+brew install node
+
+# Linux (Debian/Ubuntu 静默安装)
+sudo apt-get update -y && sudo apt-get install -y nodejs npm
+```
+
+---
+
 ## 安装与使用
 
 ### 一键安装 (Distribution)
