@@ -57,7 +57,7 @@ Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
 
 ---
 
-## 5 大云端/本地注册表级联引擎 (5-Registry Universal Resolution Engine)
+## 全网多云端源与本地注册表级联引擎 (Multi-Registry Universal Engine)
 
 | 注册表来源 | 维护主体 | 核心差异化领域 | 自动匹配/拉取逻辑 |
 | :--- | :--- | :--- | :--- |
@@ -103,7 +103,7 @@ When this skill is active, the AI Agent adheres to the following lifecycle workf
 2. **Requirements Alignment Phase**:
    - 0 extra skills loaded in the project directory. Rapid, lightweight product requirement discussion.
 3. **Dependency & Requirements Finalization Phase (`infer` & `fetch`)**:
-   - AI automatically inspects project dependencies, file extensions, and chat intent to match cold archive or 5 Cloud Registries (Vercel, Upskill, GitHub Orgs, Gitee/jsDelivr, Private Orgs).
+   - AI automatically inspects project dependencies, file extensions, and chat intent to match cold archive or Cloud Registries (Vercel, Upskill, GitHub Orgs, Gitee/jsDelivr, Private Orgs).
    - Copies matching 2-3 skills into `./.agents/skills/`.
    - **Outputs Proactive Telemetry Report Card with concise origin tags**.
 4. **Development Execution Phase (`Incremental Addition`)**:
