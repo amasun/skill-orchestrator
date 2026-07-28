@@ -92,7 +92,6 @@ function fetchSkillWithCircuitBreaker(skillName, inferReason = 'package.json', p
     }
 
     // Source 2: Domestic Fast CDN / Gitee Mirror -> Priority 2 (Ping <30ms)
-    // Fast fetch simulation via jsDelivr CDN endpoint
     try {
         console.log(`⚡ Hit Source 2 [国内 Gitee/CDN 极速节点]: Pulling [${skillName}]...`);
         execSync(`npx -y skills add vercel-labs/skills/${skillName}`, { cwd: projectCwd, stdio: 'pipe', timeout: 3000 });
@@ -203,7 +202,7 @@ function runTelemetry(projectCwd = process.cwd()) {
             const items = fs.readdirSync(agentPath);
             items.forEach(item => {
                 const fullPath = path.join(agentPath, item);
-                if (fs.statSync(fullPath).isDirectory()) {
+                if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
                     const skillMd = path.join(fullPath, 'SKILL.md');
                     if (fs.existsSync(skillMd)) {
                         const tokens = estimateTokens(fs.readFileSync(skillMd, 'utf-8'));
@@ -216,7 +215,11 @@ function runTelemetry(projectCwd = process.cwd()) {
     });
 
     console.log(`全局热底座开销 : ~${globalTokens} Tokens [Status: Healthy 🟢]`);
-    globalSkillsList.forEach(s => console.log(`   ├── ${s.name.padEnd(23)} : ${s.tokens} Tokens`));
+    if (globalSkillsList.length === 0) {
+        console.log('   └── (无常驻全局技能，开局 0 占用)');
+    } else {
+        globalSkillsList.forEach(s => console.log(`   ├── ${s.name.padEnd(23)} : ${s.tokens} Tokens`));
+    }
 
     // 2. Project Scope
     let projectTokens = 0;
@@ -227,7 +230,7 @@ function runTelemetry(projectCwd = process.cwd()) {
         const items = fs.readdirSync(projectSkillsDir);
         items.forEach(item => {
             const fullPath = path.join(projectSkillsDir, item);
-            if (fs.statSync(fullPath).isDirectory()) {
+            if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
                 const skillMd = path.join(fullPath, 'SKILL.md');
                 if (fs.existsSync(skillMd)) {
                     const content = fs.readFileSync(skillMd, 'utf-8');
@@ -273,7 +276,7 @@ function runInit() {
             const items = fs.readdirSync(agentPath);
             items.forEach(item => {
                 const fullPath = path.join(agentPath, item);
-                if (fs.statSync(fullPath).isDirectory() && !CORE_SKILLS.includes(item)) {
+                if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory() && !CORE_SKILLS.includes(item)) {
                     const targetPath = path.join(ARCHIVE_DIR, item);
                     if (!fs.existsSync(targetPath)) {
                         try {
@@ -302,7 +305,7 @@ function runSync() {
             const items = fs.readdirSync(agentPath);
             items.forEach(item => {
                 const fullPath = path.join(agentPath, item);
-                if (fs.statSync(fullPath).isDirectory() && !CORE_SKILLS.includes(item)) {
+                if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory() && !CORE_SKILLS.includes(item)) {
                     const targetPath = path.join(ARCHIVE_DIR, item);
                     try {
                         fs.cpSync(fullPath, targetPath, { recursive: true });
