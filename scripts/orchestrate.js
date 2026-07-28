@@ -78,6 +78,9 @@ function discoverAllSkillPaths(ideFilter = getIdeFilter()) {
     if (ideFilter) {
         const filtered = allPaths.filter(p => {
             const lowerP = p.toLowerCase();
+            if (ideFilter === 'antigravity' || ideFilter === 'gemini') {
+                return lowerP.includes('gemini') || lowerP.includes('antigravity');
+            }
             return lowerP.includes('.' + ideFilter) || lowerP.includes(ideFilter);
         });
         if (filtered.length > 0) return filtered;
