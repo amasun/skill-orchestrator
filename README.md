@@ -119,7 +119,7 @@ flowchart TD
 1. **首轮自动触发**：新项目需求定稿 / 中途新增大模块技能时，AI 在回复末尾自动呈现。
 2. **斜杠指令唤醒（最推荐）**：在对话框输入 `/status`（利用 IDE 的 Tab 键自动补全）。
 3. **自然语言唤醒**：对 AI 说“查看 Token 占用”、“技能诊断”、“当前项目装了哪些技能”。
-4. **命令行唤醒（开发者）**：在项目终端运行 `npm run status`。
+4. **命令行唤醒（开发者）**：在项目终端运行 `npm run status`（等价于执行 `node scripts/orchestrate.js status`）。
 
 ```text
 ------------------------------------------------------------
@@ -150,16 +150,16 @@ npx skills add amasun/skill-orchestrator
 ### 命令行工具操作（开发者备用）
 ```bash
 # 1. 多源依赖自动推断 (自动读取配置文件/代码后缀零沟通匹配技能)
-npm run infer
+node scripts/orchestrate.js infer   # 或 npm run infer
 
 # 2. 自动巡检检测用户手动 npx 安装的新技能并移入私有冷库
-npm run sync
+node scripts/orchestrate.js sync    # 或 npm run sync
 
 # 3. Token 预算诊断仪表盘 / 汇报卡手动唤醒 (查看精确 Token 占用与健康度)
-npm run status
+node scripts/orchestrate.js status  # 或 npm run status
 
 # 4. 项目结项一键清理
-npm run cleanup
+node scripts/orchestrate.js cleanup # 或 npm run cleanup
 ```
 
 ---
@@ -170,11 +170,11 @@ npm run cleanup
 
 | 斜杠指令 (最推荐 - 支持 IDE 敲 / 自动补全) | 替代语法 | 自然语言口语表述 | 后台自动执行 |
 | :---: | :---: | :--- | :--- |
-| **`/status`** | `$status` / `status` | **“查看 Token 占用”、“技能诊断”** | `npm run status` |
-| **`/init`** | `$init` / `init` | **“初始化技能库”、“清空开局占用”** | `npm run init` |
-| **`/infer`** | `$infer` / `infer` | **“检查依赖”、“自动匹配技能”** | `npm run infer` |
-| **`/sync`** | `$sync` / `sync` | **“刚才 npx 装了新技能，整理一下”** | `npm run sync` |
-| **`/cleanup`** | `$cleanup` / `cleanup` | **“项目开发完成了”、“清理临时技能”** | `npm run cleanup` |
+| **`/status`** | `$status` / `status` | **“查看 Token 占用”、“技能诊断”** | `node scripts/orchestrate.js status` (`npm run status`) |
+| **`/init`** | `$init` / `init` | **“初始化技能库”、“清空开局占用”** | `node scripts/orchestrate.js init` (`npm run init`) |
+| **`/infer`** | `$infer` / `infer` | **“检查依赖”、“自动匹配技能”** | `node scripts/orchestrate.js infer` (`npm run infer`) |
+| **`/sync`** | `$sync` / `sync` | **“刚才 npx 装了新技能，整理一下”** | `node scripts/orchestrate.js sync` (`npm run sync`) |
+| **`/cleanup`** | `$cleanup` / `cleanup` | **“项目开发完成了”、“清理临时技能”** | `node scripts/orchestrate.js cleanup` (`npm run cleanup`) |
 
 ---
 
@@ -214,7 +214,7 @@ npm run cleanup
 
 ## 变更与迭代历史 (Changelog)
 
-- **v2.3.1 (2026-07-28)**：简化汇报卡装载列表示例，仅保留 5 项最典型的代表性装载项，呈现更加清爽易读。
-- **v2.3.0 (2026-07-28)**：清理特定时延表述。
+- **v2.3.2 (2026-07-28)**：在 SKILL.md 和 README.md 中显式标注 AI Agent 与 CLI 对 `node scripts/orchestrate.js` 的调用映射关系。
+- **v2.3.1 (2026-07-28)**：简化汇报卡装载列表示例。
 - **v2.2.0 (2026-07-28)**：全盘在底层代码实现多云端/本地注册表源的自动匹配与精准拉取。
 - **v2.0.0 (2026-07-28)**：全面实现 v2.0 工业级四大核心模块。

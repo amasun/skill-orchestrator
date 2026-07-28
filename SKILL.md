@@ -78,28 +78,29 @@ Prompt Cache 锚点: 已自动注入 (响应速度提升 4x)
 
 | 斜杠指令 (最推荐 - 支持 IDE 敲 / 自动补全) | 替代语法 | 自然语言口语表述 | 后台自动执行 |
 | :---: | :---: | :--- | :--- |
-| **`/status`** | `$status` / `status` | **“查看 Token 占用”、“技能诊断”** | `npm run status` |
-| **`/init`** | `$init` / `init` | **“初始化技能库”、“清空开局占用”** | `npm run init` |
-| **`/infer`** | `$infer` / `infer` | **“检查依赖”、“自动匹配技能”** | `npm run infer` |
-| **`/sync`** | `$sync` / `sync` | **“刚才 npx 装了新技能，整理一下”** | `npm run sync` |
-| **`/cleanup`** | `$cleanup` / `cleanup` | **“项目开发完成了”、“清理临时技能”** | `npm run cleanup` |
+| **`/status`** | `$status` / `status` | **“查看 Token 占用”、“技能诊断”** | `node scripts/orchestrate.js status` (`npm run status`) |
+| **`/init`** | `$init` / `init` | **“初始化技能库”、“清空开局占用”** | `node scripts/orchestrate.js init` (`npm run init`) |
+| **`/infer`** | `$infer` / `infer` | **“检查依赖”、“自动匹配技能”** | `node scripts/orchestrate.js infer` (`npm run infer`) |
+| **`/sync`** | `$sync` / `sync` | **“刚才 npx 装了新技能，整理一下”** | `node scripts/orchestrate.js sync` (`npm run sync`) |
+| **`/cleanup`** | `$cleanup` / `cleanup` | **“项目开发完成了”、“清理临时技能”** | `node scripts/orchestrate.js cleanup` (`npm run cleanup`) |
 
 ---
 
-## Orchestration Protocol & Workflow
+## 🏛️ Orchestration Protocol & Execution Rules
 
-When this skill is active, the AI Agent adheres to the following lifecycle workflow:
+当此 Skill 激活时，AI Agent 必须严格遵循以下生命周期逻辑并调用底层核心执行脚本 `scripts/orchestrate.js`：
 
-1. **Initialization (`init`)**:
-   - Creates a local cold archive repository (`skills_archive/`).
-   - Moves non-core global skills into archive, reducing global base tokens by 90%+.
-2. **Requirements Alignment Phase**:
-   - 0 extra skills loaded in the project directory. Rapid, lightweight product requirement discussion.
-3. **Dependency & Requirements Finalization Phase (`infer` & `fetch`)**:
-   - AI automatically inspects project dependencies, file extensions, and chat intent to match cold archive or Cloud Registries (Vercel, Upskill, GitHub Orgs, Gitee/jsDelivr, Private Orgs).
-   - Copies matching 2-3 skills into `./.agents/skills/`.
-   - **Outputs Proactive Telemetry Report Card with concise origin tags**.
-4. **Development Execution Phase (`Incremental Addition`)**:
-   - Single-directional addition. Never deletes active skills mid-development to prevent context fragmentation.
-5. **Project Offboarding Phase (`cleanup`)**:
-   - Cleans project-level skills after project completion.
+1. **初始化阶段 (`init`)**:
+   - AI 执行命令: `node scripts/orchestrate.js init`
+   - 建立私有冷库 (`skills_archive/`)，将非 Core 的全局技能归档，降级开局 Tokens 至 <500。
+2. **需求对齐阶段 (Requirements Alignment)**:
+   - 项目目录保持 0 额外技能，进行轻量化产品需求讨论。
+3. **依赖推断与多源装载阶段 (`infer`)**:
+   - AI 执行命令: `node scripts/orchestrate.js infer`
+   - 自动扫描配置文件与代码后缀特征，从冷库或多云端源拉取对应技能到 `./.agents/skills/`，并输出 Telemetry 汇报卡。
+4. **巡检同步阶段 (`sync`)**:
+   - AI 执行命令: `node scripts/orchestrate.js sync`
+   - 巡检捕获用户通过 `npx` 手动安装的新技能并自动迁移入私有冷库。
+5. **项目结项清理阶段 (`cleanup`)**:
+   - AI 执行命令: `node scripts/orchestrate.js cleanup`
+   - 统一清理本项目下临时技能目录 `./.agents/skills/`。
